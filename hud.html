@@ -17,13 +17,15 @@
             --window-bg: rgba(56, 189, 248, 0.05);
         }
 
-        body {
-            margin: 0; padding: 0; background-color: var(--bg-deep); color: var(--text-main);
-            font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-            min-height: 100vh; background-size: cover; background-position: center;
-            background-attachment: fixed; background-repeat: no-repeat;
-            transition: background 1.5s ease;
-        }
+        function updateBackground() {
+    const hour = new Date().getHours();
+    let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : 
+             (hour >= 12 && hour < 17) ? "noon.jpg" : 
+             (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
+    
+    // スタイルを上書きせず、画像パスだけを変更
+    document.body.style.backgroundImage = `url('${bg}')`;
+}
 
         .container { padding: 40px 20px 140px; max-width: 500px; margin: 0 auto; }
         .header-title { text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; }
