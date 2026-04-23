@@ -161,13 +161,21 @@ body {
         <div id="log-container" style="display:none;"></div>
     </div>
 
-    <div class="hud-system" id="hud-ui" style="display:none;">
-        <div><button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button></div>
-        <button class="mode-btn" onclick="toggleNextMode()">
-            <div style="font-size: 24px;">🛰️</div>
-            <div class="current-mode-display" id="mode-display">MODE: ALL</div>
-        </button>
-    </div>
+<div class="hud-system" id="hud-ui" style="display:none;">
+    <div><button class="fav-toggle-btn" id="calendar-btn" onclick="toggleArchive()">📅</button></div>
+    <div><button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button></div>
+    <button class="mode-btn" onclick="toggleNextMode()">
+        <div style="font-size: 24px;">🛰️</div>
+        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
+    </button>
+</div>
+
+<div id="archive-panel" class="log-window" style="position:fixed; top:0; right:-300px; width:250px; height:100%; z-index:2500; transition:0.4s; padding:60px 20px; background: rgba(2, 6, 23, 0.95);">
+    <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan);">DATA ARCHIVE</div>
+    <div id="archive-list" style="overflow-y:auto; height:80%;">
+        </div>
+    <button onclick="toggleArchive()" style="margin-top:20px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer;">CLOSE</button>
+</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -245,6 +253,9 @@ function hideLoading() {
             }
         }
 
+        /* --- 1. ここにアーカイブ（カレンダー）用の変数を追加 --- */
+        let isArchiveOpen = false;
+
 function renderLogs() {
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
@@ -267,6 +278,53 @@ function renderLogs() {
             // 【追加】ここで演出を終了させる！
             hideLoading();
         }
+
+        /* --- 3. ここにアーカイブ操作用の関数をまとめて追加 --- */
+        // パネルの開閉
+        window.toggleArchive = function() {
+            const panel = document.getElementById('archive-panel');
+            isArchiveOpen = !isArchiveOpen;
+            panel.style.right = isArchiveOpen ? "0px" : "-300px";
+            if(isArchiveOpen) generateArchiveList();
+        };
+
+        // リスト生成
+        function generateArchiveList() {
+            const listContainer = document.getElementById('archive-list');
+            const dates = [...new Set(allLogs.map(log => log.date))];
+            listContainer.innerHTML = dates.map(date => `
+                <div onclick="jumpToDate('${date}')" style="padding:12px; cursor:pointer; font-size:13px; color:var(--text-main); border-bottom:1px solid rgba(56,189,248,0.1); font-family: 'Share Tech Mono';">
+                    > ${date}
+                </div>
+            `).join('');
+        }
+
+        // 日付ジャンプ
+        window.jumpToDate = function(date) {
+            toggleArchive();
+            currentFilter = 'ALL';
+            isFavOnly = false;
+            document.getElementById('mode-display').innerText = `MODE: ALL`;
+            document.getElementById('fav-filter-btn').classList.remove('active');
+            renderLogs();
+
+            setTimeout(() => {
+                const elements = document.getElementsByClassName('timestamp-top');
+                for (let el of elements) {
+                    if (el.innerText === date) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const target = el.parentElement.parentElement;
+                        target.style.boxShadow = "0 0 20px var(--accent-glow)";
+                        target.style.borderColor = "var(--accent-cyan)";
+                        setTimeout(() => { 
+                            target.style.boxShadow = "none"; 
+                            target.style.borderColor = "rgba(56, 189, 248, 0.2)";
+                        }, 2000);
+                        break;
+                    }
+                }
+            }, 100);
+        };
 
         window.toggleNextMode = function() {
             let idx = modes.indexOf(currentFilter);
