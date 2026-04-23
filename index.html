@@ -17,6 +17,50 @@
             --window-bg: rgba(56, 189, 248, 0.05);
         }
 
+        /* --- 1. スクロールバーのカスタマイズ --- */
+/* バー全体の幅 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+/* 背景（レール）部分 */
+::-webkit-scrollbar-track {
+    background: rgba(2, 6, 23, 0.5);
+}
+/* 動く棒の部分 */
+::-webkit-scrollbar-thumb {
+    background: var(--accent-cyan);
+    border-radius: 3px;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* --- 2. フォントの導入（Google Fonts） --- */
+/* 英数字にSF感のある 'Share Tech Mono' を適用 */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+body {
+    /* フォント指定の先頭に追加 */
+    font-family: 'Share Tech Mono', -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
+}
+
+/* --- 3. ログ表示のアニメーション --- */
+@keyframes logAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+.log-window {
+    /* 既存のプロパティはそのままで、以下を追加 */
+    animation: logAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+        
         /* --- 【重要】背景を完全に固定するレイヤー --- */
         #fixed-bg {
             position: fixed;
