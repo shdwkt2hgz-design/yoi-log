@@ -75,6 +75,11 @@
             <button id="postBtn">投稿する</button>
             <p id="status"></p>
 
+            <div style="margin-top: 50px; border-top: 1px dashed rgba(56, 189, 248, 0.3); padding-top: 20px;">
+    <p style="font-size: 10px; color: var(--accent-cyan); opacity: 0.6; font-family: 'Share Tech Mono';">ADMINISTRATION TOOLS</p>
+    <button onclick="exportSystemData()" style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); cursor: pointer; padding: 5px 15px; font-family: 'Share Tech Mono'; font-size: 11px;">EXPORT ALL DATA (.JSON)</button>
+</div>
+
             <div class="log-list">
                 <label>最近の投稿（削除用）</label>
                 <div id="logItems"></div>
@@ -195,6 +200,37 @@
             const tagInput = document.getElementById('logTags');
             if (!tagInput.value.includes(btn.innerText)) tagInput.value += (tagInput.value ? ' ' : '') + btn.innerText;
         };
+
+        // 全ログデータをJSONとしてダウンロードする関数
+window.exportSystemData = function() {
+    if (!allLogs || allLogs.length === 0) {
+        alert("エクスポートするデータがありません。");
+        return;
+    }
+
+    // 1. データを文字列（JSON）に変換
+    const dataStr = JSON.stringify(allLogs, null, 2);
+    
+    // 2. ダウンロード用のBlob（塊）を作成
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // 3. 一時的なリンクを作ってクリックさせる（ダウンロード開始）
+    const a = document.createElement('a');
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+    
+    a.href = url;
+    a.download = `yoi_log_backup_${dateStr}.json`; // yoi_log_backup_20260424.json のような名前
+    document.body.appendChild(a);
+    a.click();
+    
+    // 4. 後片付け
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log("SYSTEM DATA EXPORTED SUCCESSFULLY.");
+};
     });
 </script>
 </body>
