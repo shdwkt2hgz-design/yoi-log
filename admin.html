@@ -107,6 +107,9 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // エクスポート用に全データを保持する変数を追加
+let allLogs = [];
+
     const loginSection = document.getElementById('login-section');
     const adminSection = document.getElementById('admin-section');
     const logItemsDiv = document.getElementById('logItems');
@@ -144,14 +147,20 @@
         }
     });
 
-    function loadLogs() {
-        const logsRef = ref(db, 'logs');
-        onValue(logsRef, (snapshot) => {
-            logItemsDiv.innerHTML = "";
-            const data = snapshot.val();
-            if (!data) return;
+function loadLogs() {
+    const logsRef = ref(db, 'logs');
+    onValue(logsRef, (snapshot) => {
+        logItemsDiv.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) {
+            allLogs = []; // データがない場合は空にする
+            return;
+        }
 
-            const entries = Object.entries(data).reverse();
+        // --- ここを追加：エクスポート用に全データを配列として保持 ---
+        allLogs = Object.values(data); 
+
+        const entries = Object.entries(data).reverse();
             entries.forEach(([id, val]) => {
                 const item = document.createElement('div');
                 item.className = 'log-item';
@@ -195,42 +204,36 @@
         } catch (e) { alert("エラー: " + e.message); }
     };
 
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-        btn.onclick = () => {
-            const tagInput = document.getElementById('logTags');
-            if (!tagInput.value.includes(btn.innerText)) tagInput.value += (tagInput.value ? ' ' : '') + btn.innerText;
-        };
-
-        // 全ログデータをJSONとしてダウンロードする関数
+    // 全ログデータをJSONとしてダウンロードする関数
 window.exportSystemData = function() {
     if (!allLogs || allLogs.length === 0) {
         alert("エクスポートするデータがありません。");
         return;
     }
 
-    // 1. データを文字列（JSON）に変換
     const dataStr = JSON.stringify(allLogs, null, 2);
-    
-    // 2. ダウンロード用のBlob（塊）を作成
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     
-    // 3. 一時的なリンクを作ってクリックさせる（ダウンロード開始）
     const a = document.createElement('a');
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
     
     a.href = url;
-    a.download = `yoi_log_backup_${dateStr}.json`; // yoi_log_backup_20260424.json のような名前
+    a.download = `yoi_log_backup_${dateStr}.json`;
     document.body.appendChild(a);
     a.click();
     
-    // 4. 後片付け
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    console.log("SYSTEM DATA EXPORTED SUCCESSFULLY.");
+    console.log("SYSTEM DATA EXPORTED.");
 };
+    
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.onclick = () => {
+            const tagInput = document.getElementById('logTags');
+            if (!tagInput.value.includes(btn.innerText)) tagInput.value += (tagInput.value ? ' ' : '') + btn.innerText;
+        };
     });
 </script>
 </body>
