@@ -101,7 +101,7 @@
             box-shadow: 0 0 10px var(--accent-glow); backdrop-filter: blur(4px);
         }
 
-        /* カレンダー専用スタイル */
+        /* アーカイブパネル */
         #archive-panel {
             position: fixed; top: 0; right: -320px; width: 280px; height: 100%; 
             z-index: 2500; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
@@ -154,17 +154,20 @@
 
     <div class="container">
         <div class="header-title">Ryusei Yoi / Personal Log Viewer (HUD)</div>
+        
         <div id="user-info-panel" style="display:none; text-align: center; margin-bottom: 20px;">
-    <div style="font-size: 10px; opacity: 0.6; letter-spacing: 1px;">CONNECT ID</div>
-    <div id="uid-display" onclick="copyUID()" style="display: inline-block; padding: 8px 15px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--accent-cyan); color: var(--accent-cyan); font-family: 'Share Tech Mono'; font-size: 14px; cursor: pointer; border-radius: 4px; margin-top: 5px;">
-        IDを取得中...
-    </div>
-    <div id="copy-msg" style="font-size: 9px; color: var(--accent-gold); height: 12px; margin-top: 4px; opacity: 0;">COPIED!</div>
-</div>
+            <div style="font-size: 10px; opacity: 0.6; letter-spacing: 1px;">CONNECT ID</div>
+            <div id="uid-display" onclick="copyUID()" style="display: inline-block; padding: 8px 15px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--accent-cyan); color: var(--accent-cyan); font-family: 'Share Tech Mono'; font-size: 14px; cursor: pointer; border-radius: 4px; margin-top: 5px;">
+                IDを取得中...
+            </div>
+            <div id="copy-msg" style="font-size: 9px; color: var(--accent-gold); height: 12px; margin-top: 4px; opacity: 0;">COPIED!</div>
+        </div>
+
         <div id="auth-section" class="log-window" style="text-align: center; padding: 30px 10px;">
             <div id="login-status">読み込み中...</div>
             <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Googleログイン</button>
         </div>
+        
         <div id="log-container" style="display:none;"></div>
     </div>
 
@@ -180,13 +183,11 @@
    <div id="archive-panel" class="log-window">
         <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan); font-family:'Share Tech Mono';">DATA ARCHIVE</div>
         <div id="archive-list"></div>
-        
         <button onclick="resetToAll()" style="margin-top:30px; background:rgba(56, 189, 248, 0.1); border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono'; font-size:11px;">SHOW ALL LOGS</button>
-        
         <button onclick="toggleArchive()" style="margin-top:10px; background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono'; font-size:11px;">CLOSE</button>
     </div>
 
-<script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
@@ -211,7 +212,6 @@
         let isFavOnly = false;
         const modes = ['ALL', '#思ったこと', '#聴いた曲', '#ゲーム'];
 
-        // ログイン状態の監視（統合版）
         onAuthStateChanged(auth, async (user) => {
             const infoPanel = document.getElementById('user-info-panel');
             const uidDisplay = document.getElementById('uid-display');
@@ -229,7 +229,6 @@
             }
         });
 
-        // UIDコピー機能
         window.copyUID = function() {
             const uidText = document.getElementById('uid-display').innerText;
             navigator.clipboard.writeText(uidText).then(() => {
@@ -238,11 +237,6 @@
                 setTimeout(() => { msg.style.opacity = "0"; }, 2000);
             });
         };
-
-        // 背景画像のプリロード
-        ['morning.jpg', 'noon.jpg', 'evening.jpg', 'night.jpg'].forEach(src => {
-            const img = new Image(); img.src = src;
-        });
 
         let isFirstLoad = true;
         function hideLoading() {
@@ -260,24 +254,49 @@
         };
 
         async function checkPermissionAndLoadLogs(uid) {
-            const snapshot = await get(ref(db, 'whitelist/' + uid));
-            if (snapshot.exists() && snapshot.val() === true) {
-                document.getElementById('auth-section').style.display = "none";
-                document.getElementById('log-container').style.display = "block";
-                document.getElementById('hud-ui').style.display = "block";
-                onValue(ref(db, 'logs'), (logSnapshot) => {
-                    const data = logSnapshot.val();
-                    if (data) {
-                        allLogs = Object.keys(data).map(key => data[key]);
-                        allLogs.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
-                        renderLogs();
-                    }
-                });
-            } else {
-                // ホワイトリストにない場合はローディングを消してメッセージ
-                hideLoading();
-                document.getElementById('login-status').innerText = "認証完了：権限を確認中...";
+            // --- [設定部] ---
+            const ADMIN_UID = "2Tou4UMpZQaa8khTHm1o2JF7EOo1"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbztCfEZy9Mggprm9j5-WQQdVidMSeGEEY4e__pkMkXwSJqkT31ao8yxLZlBXHhbrbVZ/exec";
+            // ----------------
+
+            if (uid === ADMIN_UID) {
+                console.log("ADMIN ACCESS GRANTED");
+                setupLogListener();
+                return;
             }
+
+            try {
+                document.getElementById('login-status').innerText = "会員権限を確認中...";
+                const response = await fetch(`${GAS_URL}?uid=${uid}`);
+                const result = await response.json();
+
+                if (result.allowed) {
+                    setupLogListener();
+                } else {
+                    hideLoading();
+                    document.getElementById('login-status').innerHTML = 
+                        `未登録のIDです<br><span style="font-size:10px; color:var(--accent-gold);">UIDを管理者に伝えてください</span>`;
+                }
+            } catch (error) {
+                console.error("GAS Auth Error:", error);
+                document.getElementById('login-status').innerText = "認証サーバー接続エラー";
+                hideLoading();
+            }
+        }
+
+        function setupLogListener() {
+            document.getElementById('auth-section').style.display = "none";
+            document.getElementById('log-container').style.display = "block";
+            document.getElementById('hud-ui').style.display = "block";
+            
+            onValue(ref(db, 'logs'), (logSnapshot) => {
+                const data = logSnapshot.val();
+                if (data) {
+                    allLogs = Object.keys(data).map(key => data[key]);
+                    allLogs.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
+                    renderLogs();
+                }
+            });
         }
 
         function renderLogs() {
@@ -335,7 +354,6 @@
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             const filtered = allLogs.filter(log => log.date.includes(date));
-            
             if (filtered.length === 0) return;
 
             container.innerHTML = `
