@@ -170,10 +170,13 @@
         </button>
     </div>
 
-    <div id="archive-panel" class="log-window">
+   <div id="archive-panel" class="log-window">
         <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan); font-family:'Share Tech Mono';">DATA ARCHIVE</div>
         <div id="archive-list"></div>
-        <button onclick="toggleArchive()" style="margin-top:30px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono';">CLOSE</button>
+        
+        <button onclick="resetToAll()" style="margin-top:30px; background:rgba(56, 189, 248, 0.1); border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono'; font-size:11px;">SHOW ALL LOGS</button>
+        
+        <button onclick="toggleArchive()" style="margin-top:10px; background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono'; font-size:11px;">CLOSE</button>
     </div>
 
     <script type="module">
@@ -300,39 +303,40 @@
         }
 
 window.jumpToDate = function(date) {
-    toggleArchive(); // パネルを閉じる
-    
-    // 1. その日のログだけを抽出する
-    const container = document.getElementById('log-container');
-    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-    
-    // 日付が一致するログだけをフィルタリング
-    let filtered = allLogs.filter(log => log.date.includes(date));
-    
-    if (filtered.length === 0) return;
+            toggleArchive();
+            
+            // HUDのモード表示には一切触れません（宵さんの美学を守るため！）
+            
+            const container = document.getElementById('log-container');
+            const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            const filtered = allLogs.filter(log => log.date === date);
+            
+            if (filtered.length === 0) return;
 
-    // 2. 抽出されたログだけを再描画
-    container.innerHTML = `
-        <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
-            -- OBSERVING DATA: ${date} --
-        </div>
-    ` + filtered.map(log => `
-        <div class="log-window" id="target-${log.date.replace(/\./g, '-')}">
-            <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
-            <div class="log-text">${log.text}</div>
-            <div class="log-footer">
-                <span class="hashtags">${log.tags || ''}</span>
-                <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
-            </div>
-        </div>
-    `).join('');
+            container.innerHTML = `
+                <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
+                    -- OBSERVING DATA: ${date} --
+                </div>
+            ` + filtered.map(log => `
+                <div class="log-window">
+                    <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
+                    <div class="log-text">${log.text}</div>
+                    <div class="log-footer">
+                        <span class="hashtags">${log.tags || ''}</span>
+                        <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+                    </div>
+                </div>
+            `).join('');
 
-    // 3. 演出として少しスクロールさせる
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // 4. モード表示を「DATE FILTER」に変更（視覚的なフィードバック）
-    document.getElementById('mode-display').innerText = `MODE: DATE FILTER`;
-};
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetToAll = function() {
+            toggleArchive();
+            currentFilter = 'ALL';
+            document.getElementById('mode-display').innerText = `MODE: ALL`;
+            renderLogs();
+        };
 
         window.toggleNextMode = function() {
             let idx = modes.indexOf(currentFilter);
