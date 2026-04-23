@@ -81,81 +81,55 @@
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
 
-        /* --- 展開式レンズセレクター --- */
-        .lens-system {
-            position: fixed;
-            bottom: 40px;
-            right: 30px;
-            z-index: 2000;
-        }
-        
-        .main-lens {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: rgba(2, 6, 23, 0.9);
-            border: 2px solid var(--accent-cyan);
-            color: var(--accent-cyan);
-            cursor: pointer;
-            z-index: 2001;
-            position: relative;
-            box-shadow: 0 0 20px var(--accent-glow);
-            backdrop-filter: blur(8px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        /* --- 展開式レンズ：デザイン変更（四角形＆配置調整） --- */
+.lens-system {
+    position: fixed;
+    bottom: 40px;
+    right: 30px;
+    z-index: 2000;
+}
 
-        .lens-system.active .main-lens {
-            transform: rotate(135deg);
-            border-color: #ef4444;
-            color: #ef4444;
-        }
+/* ジャンル名ボタンを「文字に合わせた四角」に */
+.sub-mode {
+    position: absolute;
+    bottom: 35px; /* LENSボタンの中央付近から開始 */
+    right: 35px;
+    padding: 4px 12px; /* 文字に合わせた余白 */
+    border-radius: 2px; /* 鋭角な四角形 */
+    background: rgba(2, 6, 23, 0.85);
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    white-space: nowrap; /* 改行防止 */
+}
 
-        .sub-mode {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: rgba(2, 6, 23, 0.9);
-            border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan);
-            font-size: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.4s ease;
-            pointer-events: none;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
+.lens-system.active .sub-mode { opacity: 1; pointer-events: auto; }
 
-        .lens-system.active .sub-mode { opacity: 1; pointer-events: auto; }
-        
-        /* 扇状の展開位置調整 */
-        .lens-system.active .sub-0 { transform: translate(-80px, 0); }      /* ALL */
-        .lens-system.active .sub-1 { transform: translate(-70px, -70px); }  /* 思考 */
-        .lens-system.active .sub-2 { transform: translate(0, -80px); }      /* 音楽 */
-        .lens-system.active .sub-3 { transform: translate(40px, -110px); }  /* GAME */
+/* 四角いタグの展開位置（重なりにくい階段状） */
+.lens-system.active .sub-0 { transform: translate(-80px, 15px); }    /* ALL */
+.lens-system.active .sub-1 { transform: translate(-85px, -25px); }   /* 思考 */
+.lens-system.active .sub-2 { transform: translate(-80px, -65px); }   /* 音楽 */
+.lens-system.active .sub-3 { transform: translate(-65px, -105px); }  /* GAME */
 
-        .current-mode-display {
-            position: fixed;
-            bottom: 130px;
-            right: 35px;
-            font-family: monospace;
-            font-size: 12px;
-            color: var(--accent-cyan);
-            text-shadow: 0 0 10px var(--accent-glow);
-            opacity: 0.9;
-            pointer-events: none;
-        }
+/* 「MODE:」を計器（LENSボタン）の真下に配置 */
+.current-mode-display {
+    position: absolute;
+    top: 75px; /* LENSボタン(70px)のすぐ下 */
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 8px var(--accent-glow);
+    white-space: nowrap;
+    opacity: 0.8;
+}
 
         .flying-star { position: fixed; z-index: 9999; color: #fbbf24; font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
     </style>
@@ -177,18 +151,18 @@
         <div id="log-container" style="display:none;"></div>
     </div>
 
-    <div class="current-mode-display" id="mode-display">MODE: ALL</div>
     <div class="lens-system" id="lens-ui" style="display:none;">
-        <button class="sub-mode sub-0" onclick="setMode('ALL')">ALL</button>
-        <button class="sub-mode sub-1" onclick="setMode('#思ったこと')">思考</button>
-        <button class="sub-mode sub-2" onclick="setMode('#聴いた曲')">音楽</button>
-        <button class="sub-mode sub-3" onclick="setMode('#ゲーム')">GAME</button>
-        
-        <button class="main-lens" onclick="document.getElementById('lens-ui').classList.toggle('active')">
-            <div style="font-size: 20px;">🛰️</div>
-            <div style="font-size: 8px;">LENS</div>
-        </button>
-    </div>
+    <button class="sub-mode sub-0" onclick="setMode('ALL')">ALL</button>
+    <button class="sub-mode sub-1" onclick="setMode('#思ったこと')">思考</button>
+    <button class="sub-mode sub-2" onclick="setMode('#聴いた曲')">音楽</button>
+    <button class="sub-mode sub-3" onclick="setMode('#ゲーム')">GAME</button>
+    
+    <button class="main-lens" onclick="document.getElementById('lens-ui').classList.toggle('active')">
+        <div style="font-size: 20px;">🛰️</div>
+        <div style="font-size: 8px;">LENS</div>
+        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
+    </button>
+</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
