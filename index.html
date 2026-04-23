@@ -291,13 +291,13 @@ function updateBackground() {
 
     // 1. 時間帯によって画像を選択
     if (hour >= 6 && hour < 12) {
-        bgImage = "url('morning.jpg')"; // 朝
+        bgImage = ""; // 朝
     } else if (hour >= 12 && hour < 17) {
-        bgImage = "url('noon.jpg')";    // 昼
+        bgImage = "";    // 昼
     } else if (hour >= 17 && hour < 20) {
-        bgImage = "url('evening.jpg')"; // 夕
+        bgImage = ""; // 夕
     } else {
-        bgImage = "url('night.jpg')";   // 晩
+        bgImage = "";   // 晩
     }
 
     // 2. 背景画像を適用
