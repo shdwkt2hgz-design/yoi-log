@@ -6,36 +6,35 @@
     <title>虚星宵 - Personal Log Viewer</title>
     <style>
         :root {
-            /* 基本の青系カラー定義 */
             --bg-deep: #020617;
             --accent-cyan: #38bdf8;
             --accent-glow: rgba(56, 189, 248, 0.3);
             --text-main: #f8fafc;
-            --window-bg: rgba(56, 189, 248, 0.05);
+            --window-bg: rgba(56, 189, 248, 0.1);
         }
 
-                /* --- 時間帯別の背景設定（画像がない時の予備グラデーション） --- */
-        body.morning { background: radial-gradient(circle at top, #083344, #020617); }
-        body.day     { background: radial-gradient(circle at center, #0c4a6e, #020617); }
-        body.evening { background: radial-gradient(circle at bottom, #1e1b4b, #020617); }
-        body.night   { background: radial-gradient(circle at center, #020617, #000000); }
-
+        /* --- 背景設定：ここを整理しました --- */
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-deep);
+            /* 命綱：グラデーションが動かなくても背景を紺色にする */
+            background-color: #020617 !important; 
             color: var(--text-main);
             font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
             min-height: 100vh;
-            /* 画像の設定 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            transition: background 1.5s ease; /* グラデーションも画像もふわっと切り替える */
+            transition: background 1.5s ease;
         }
 
-        /* --- メインコンテンツ --- */
+        /* クラスごとの背景を!importantで強化 */
+        body.morning { background: radial-gradient(circle at top, #083344, #020617) !important; }
+        body.day     { background: radial-gradient(circle at center, #0c4a6e, #020617) !important; }
+        body.evening { background: radial-gradient(circle at bottom, #1e1b4b, #020617) !important; }
+        body.night   { background: radial-gradient(circle at center, #020617, #000000) !important; }
+
         .container {
             padding: 40px 20px;
             max-width: 500px;
@@ -49,19 +48,19 @@
             color: var(--accent-cyan);
             margin-bottom: 40px;
             text-transform: uppercase;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* --- C案：観測ウィンドウ --- */
         .log-window {
             position: relative;
             background: var(--window-bg);
             border: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            backdrop-filter: blur(4px);
+            padding: 15px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px); /* iPhone用 */
         }
 
-        /* 四隅のL字ターゲット */
         .log-window::before {
             content: ""; position: absolute; top: -1px; left: -1px;
             width: 15px; height: 15px;
@@ -74,255 +73,201 @@
         }
 
         .log-meta {
-    font-family: monospace;
-    font-size: 0.7rem;
-    /* color: var(--accent-cyan);  ←ここを削除またはコメントアウト！ */
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    opacity: 0.8;
-}
+            font-family: monospace;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
 
         .log-text {
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.8;
             word-wrap: break-word;
-            min-height: 3em; /* 140文字のバランス */
+            margin-bottom: 10px;
         }
 
-        /* 1. フッター全体の上の隙間を少し減らす */
-.log-footer {
-    margin-top: 4px; /* 8pxから4pxへ微調整 */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    line-height: 1; /* 行の高さを最小限にして余計な隙間を消す */
-}
+        .log-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(56, 189, 248, 0.1);
+            padding-top: 8px;
+        }
 
-/* 2. 星ボタン自体の上下余白をリセット */
-.star-btn {
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.3s;
-    padding: 0; /* ボタン内の余白をゼロにする */
-    line-height: 1;
-    display: flex; /* 位置を中央に固定しやすくする */
-    align-items: center;
-}
-        .star-btn.active { color: #fbbf24; } /* お気に入り時の色 */
+        .star-btn {
+            background: none;
+            border: none;
+            color: #475569;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+        .star-btn.active { color: #fbbf24; }
 
-        .timestamp-top {
-    /* 青色を指定せず、あえて白系の文字色を継承させる */
-    font-family: monospace;
-    font-size: 10px;
-    opacity: 0.5; /* これで元のグレーっぽい色味になります */
-}
+        .hashtags {
+            font-size: 11px;
+            color: var(--accent-cyan);
+            opacity: 0.8;
+        }
 
-/* 下部のハッシュタグの見た目 */
-.hashtags {
-    font-size: 11px;
-    color: var(--accent-cyan);
-    opacity: 0.7;
-}
-
-/* フッター（タグと星ボタンの行）の余白調整 */
-.log-footer {
-    margin-top: 4px; /* ここでテキストとの距離を微調整 */
-}
-
-/* 飛んでいく星のスタイル */
-.flying-star {
-    position: fixed;
-    z-index: 9999;
-    color: #fbbf24;
-    font-size: 1.5rem;
-    pointer-events: none;
-    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* お気に入りボタンのホバー演出 */
-.star-btn:active {
-    transform: scale(1.5);
-    transition: transform 0.1s;
-}
-
+        .flying-star {
+            position: fixed;
+            z-index: 9999;
+            color: #fbbf24;
+            font-size: 1.5rem;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
     </style>
 </head>
-<body class="night"> 
-    <div class="container">
+<body> <div class="container">
         <div class="header-title">Ryusei Yoi / Personal Log Viewer</div>
 
         <div id="auth-section" class="log-window" style="text-align: center; padding: 30px 10px;">
-            <div id="login-status">読み込み中...</div>
+            <div id="login-status">宇宙線を受信中...</div>
             <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">
-                Googleアカウントでログイン
+                Googleアカウントで観測を開始
             </button>
             
             <div id="uid-display" style="display:none; margin-top: 20px;">
-                <p style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 8px;">
-                    あなたのUID（これを宵さんのFCメッセージへ）
-                </p>
+                <p style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 8px;">あなたのUID</p>
                 <code id="user-uid" style="background: rgba(255,255,255,0.1); padding: 8px; display: block; font-size: 11px; word-break: break-all; border: 1px solid rgba(56, 189, 248, 0.3); color: var(--accent-cyan);"></code>
-                <p style="font-size: 0.7rem; color: #ef4444; margin-top: 15px;">
-                    ※宵さんによる閲覧許可が完了するまでログは表示されません
-                </p>
+                <p style="font-size: 0.7rem; color: #ef4444; margin-top: 15px;">※閲覧許可が出るまでお待ちください</p>
             </div>
         </div>
         <div id="log-container" style="display:none;"></div>
     </div>
 
     <script type="module">
-    // Firebase SDKの読み込み
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    const firebaseConfig = {
-        databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
-        apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
-        authDomain: "yoi-log.firebaseapp.com",
-        projectId: "yoi-log",
-        storageBucket: "yoi-log.firebasestorage.app",
-        messagingSenderId: "248106619066",
-        appId: "1:248106619066:web:12aab65565d7d7292df283",
-        measurementId: "G-W7Y12M3YMB"
-    };
+        const firebaseConfig = {
+            databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
+            apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
+            authDomain: "yoi-log.firebaseapp.com",
+            projectId: "yoi-log",
+            storageBucket: "yoi-log.firebasestorage.app",
+            messagingSenderId: "248106619066",
+            appId: "1:248106619066:web:12aab65565d7d7292df283",
+            measurementId: "G-W7Y12M3YMB"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
 
-    onAuthStateChanged(auth, async (user) => {
-        const loginStatus = document.getElementById('login-status');
-        const loginBtn = document.getElementById('login-btn');
-        const uidDisplay = document.getElementById('uid-display');
-        const userUid = document.getElementById('user-uid');
-        const logContainer = document.getElementById('log-container');
+        function updateBackground() {
+            const hour = new Date().getHours();
+            const body = document.body;
+            body.classList.remove('morning', 'day', 'evening', 'night');
 
-        if (user) {
-            loginStatus.innerText = `ログイン中: ${user.displayName}`;
-            loginBtn.style.display = "none";
-            uidDisplay.style.display = "block";
-            userUid.innerText = user.uid;
-            checkPermissionAndLoadLogs(user.uid);
-        } else {
-            loginStatus.innerText = "閲覧にはGoogleログインが必要です";
-            loginBtn.style.display = "block";
-            uidDisplay.style.display = "none";
-            logContainer.style.display = "none";
+            if (hour >= 6 && hour < 12) body.classList.add("morning");
+            else if (hour >= 12 && hour < 17) body.classList.add("day");
+            else if (hour >= 17 && hour < 20) body.classList.add("evening");
+            else body.classList.add("night");
+            
+            body.style.backgroundImage = "none"; 
         }
-    });
+        updateBackground();
+        setInterval(updateBackground, 60000);
 
-    document.getElementById('login-btn').onclick = () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(err => {
-            console.error(err);
-            alert("ログインに失敗しました。");
-        });
-    };
+        onAuthStateChanged(auth, async (user) => {
+            const loginStatus = document.getElementById('login-status');
+            const loginBtn = document.getElementById('login-btn');
+            const uidDisplay = document.getElementById('uid-display');
+            const userUid = document.getElementById('user-uid');
+            const logContainer = document.getElementById('log-container');
 
-    async function checkPermissionAndLoadLogs(uid) {
-        const logContainer = document.getElementById('log-container');
-        const whitelistRef = ref(db, 'whitelist/' + uid);
-        try {
-            const snapshot = await get(whitelistRef);
-            if (snapshot.exists() && snapshot.val() === true) {
-                document.getElementById('auth-section').style.display = "none";
-                logContainer.style.display = "block";
-                const logsRef = ref(db, 'logs');
-                onValue(logsRef, (logSnapshot) => {
-                    const data = logSnapshot.val();
-                    if (data) {
-                        const logData = Object.keys(data).map(key => data[key]);
-                        logData.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
-                        renderLogs(logData);
-                    }
-                });
+            if (user) {
+                loginStatus.innerText = `観測中: ${user.displayName}`;
+                loginBtn.style.display = "none";
+                uidDisplay.style.display = "block";
+                userUid.innerText = user.uid;
+                checkPermissionAndLoadLogs(user.uid);
+            } else {
+                loginStatus.innerText = "閲覧には観測権限が必要です";
+                loginBtn.style.display = "block";
+                uidDisplay.style.display = "none";
+                logContainer.style.display = "none";
             }
-        } catch (error) {
-            console.error("Permission check failed:", error);
-        }
-    }
+        });
 
-    function renderLogs(logData) {
-        const container = document.getElementById('log-container');
-        const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-        container.innerHTML = logData.map((log, index) => {
-            const isFav = favorites.includes(log.date);
-            return `
-                <div class="log-window" id="log-${index}">
-                    <div class="log-meta">
-                        <span class="timestamp-top">${log.date}</span>
+        document.getElementById('login-btn').onclick = () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => console.error(err));
+        };
+
+        async function checkPermissionAndLoadLogs(uid) {
+            const logContainer = document.getElementById('log-container');
+            const whitelistRef = ref(db, 'whitelist/' + uid);
+            try {
+                const snapshot = await get(whitelistRef);
+                if (snapshot.exists() && snapshot.val() === true) {
+                    document.getElementById('auth-section').style.display = "none";
+                    logContainer.style.display = "block";
+                    const logsRef = ref(db, 'logs');
+                    onValue(logsRef, (logSnapshot) => {
+                        const data = logSnapshot.val();
+                        if (data) {
+                            const logData = Object.keys(data).map(key => data[key]);
+                            logData.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
+                            renderLogs(logData);
+                        }
+                    });
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function renderLogs(logData) {
+            const container = document.getElementById('log-container');
+            const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            container.innerHTML = logData.map((log, index) => {
+                const isFav = favorites.includes(log.date);
+                return `
+                    <div class="log-window">
+                        <div class="log-meta"><span>${log.date}</span></div>
+                        <div class="log-text">${log.text}</div>
+                        <div class="log-footer">
+                            <span class="hashtags">${log.tags}</span>
+                            <button class="star-btn ${isFav ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+                        </div>
                     </div>
-                    <div class="log-text">${log.text}</div>
-                    <div class="log-footer">
-                        <span class="hashtags">${log.tags}</span>
-                        <button class="star-btn ${isFav ? 'active' : ''}" 
-                                onclick="favLog(this, '${log.date}')">★</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // --- 背景更新関数の修正版（画像なしVer.） ---
-    function updateBackground() {
-        const hour = new Date().getHours();
-        const body = document.body;
-        body.classList.remove('morning', 'day', 'evening', 'night');
-
-        if (hour >= 6 && hour < 12) {
-            body.classList.add("morning");
-        } else if (hour >= 12 && hour < 17) {
-            body.classList.add("day");
-        } else if (hour >= 17 && hour < 20) {
-            body.classList.add("evening");
-        } else {
-            body.classList.add("night");
+                `;
+            }).join('');
         }
-        // 画像はまだないので、背景画像をクリアしてグラデーションのみにする
-        body.style.backgroundImage = "none"; 
-    }
 
-    updateBackground();
-    setInterval(updateBackground, 60000);
-
-    window.favLog = function(btn, logId) {
-        const isActivating = !btn.classList.contains('active');
-        btn.classList.toggle('active');
-        let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-        
-        if (isActivating) {
-            if (!favorites.includes(logId)) favorites.push(logId);
-            const rect = btn.getBoundingClientRect();
-            const star = document.createElement('div');
-            star.className = 'flying-star';
-            star.innerText = '★';
-            star.style.position = 'fixed';
-            star.style.left = rect.left + 'px';
-            star.style.top = rect.top + 'px';
-            star.style.opacity = '1';
-            document.body.appendChild(star);
-
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    star.style.left = (window.innerWidth - 40) + 'px';
-                    star.style.top = '20px';
-                    star.style.opacity = '0';
-                    star.style.transform = 'scale(0.2) rotate(720deg)';
-                }, 20);
-            });
-            setTimeout(() => star.remove(), 1000);
-        } else {
-            favorites = favorites.filter(id => id !== logId);
-        }
-        localStorage.setItem('yoi_favs', JSON.stringify(favorites));
-    };
-
-</script>
-
+        window.favLog = function(btn, logId) {
+            const isActivating = !btn.classList.contains('active');
+            btn.classList.toggle('active');
+            let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            if (isActivating) {
+                if (!favorites.includes(logId)) favorites.push(logId);
+                const rect = btn.getBoundingClientRect();
+                const star = document.createElement('div');
+                star.className = 'flying-star';
+                star.innerText = '★';
+                star.style.left = rect.left + 'px';
+                star.style.top = rect.top + 'px';
+                document.body.appendChild(star);
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        star.style.left = (window.innerWidth - 40) + 'px';
+                        star.style.top = '20px';
+                        star.style.opacity = '0';
+                        star.style.transform = 'scale(0.2) rotate(720deg)';
+                    }, 20);
+                });
+                setTimeout(() => star.remove(), 1000);
+            } else {
+                favorites = favorites.filter(id => id !== logId);
+            }
+            localStorage.setItem('yoi_favs', JSON.stringify(favorites));
+        };
+    </script>
 </body>
 </html>
