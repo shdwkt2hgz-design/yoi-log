@@ -299,27 +299,40 @@
             listContainer.innerHTML = html;
         }
 
-        window.jumpToDate = function(date) {
-            toggleArchive();
-            currentFilter = 'ALL';
-            isFavOnly = false;
-            document.getElementById('mode-display').innerText = `MODE: ALL`;
-            document.getElementById('fav-filter-btn').classList.remove('active');
-            renderLogs();
-            setTimeout(() => {
-                const elements = document.getElementsByClassName('timestamp-top');
-                for (let el of elements) {
-                    if (el.innerText === date) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        const target = el.parentElement.parentElement;
-                        target.style.boxShadow = "0 0 20px var(--accent-glow)";
-                        target.style.borderColor = "var(--accent-cyan)";
-                        setTimeout(() => { target.style.boxShadow = "none"; target.style.borderColor = "rgba(56, 189, 248, 0.2)"; }, 2000);
-                        break;
-                    }
-                }
-            }, 100);
-        };
+window.jumpToDate = function(date) {
+    toggleArchive(); // パネルを閉じる
+    
+    // 1. その日のログだけを抽出する
+    const container = document.getElementById('log-container');
+    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+    
+    // 日付が一致するログだけをフィルタリング
+    let filtered = allLogs.filter(log => log.date.includes(date));
+    
+    if (filtered.length === 0) return;
+
+    // 2. 抽出されたログだけを再描画
+    container.innerHTML = `
+        <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
+            -- OBSERVING DATA: ${date} --
+        </div>
+    ` + filtered.map(log => `
+        <div class="log-window" id="target-${log.date.replace(/\./g, '-')}">
+            <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
+            <div class="log-text">${log.text}</div>
+            <div class="log-footer">
+                <span class="hashtags">${log.tags || ''}</span>
+                <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+            </div>
+        </div>
+    `).join('');
+
+    // 3. 演出として少しスクロールさせる
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // 4. モード表示を「DATE FILTER」に変更（視覚的なフィードバック）
+    document.getElementById('mode-display').innerText = `MODE: DATE FILTER`;
+};
 
         window.toggleNextMode = function() {
             let idx = modes.indexOf(currentFilter);
