@@ -15,8 +15,6 @@
             --accent-purple: #a855f7;
             --accent-gold: #fbbf24;
             --accent-glow: rgba(56, 189, 248, 0.3);
-            --purple-glow: rgba(168, 85, 247, 0.4);
-            --gold-glow: rgba(251, 191, 36, 0.4);
             --text-main: #f8fafc;
             --window-bg: rgba(56, 189, 248, 0.05);
         }
@@ -30,13 +28,11 @@
             box-shadow: 0 0 10px var(--accent-glow); 
         }
 
-        /* 4. アニメーション定義 */
         @keyframes logAppear {
             from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(10px); }
             to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        /* 5. ベースデザイン */
         body {
             margin: 0; padding: 0; 
             background-color: transparent;
@@ -77,6 +73,7 @@
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: 'Share Tech Mono', monospace; font-size: 10px; opacity: 0.5; }
 
+        /* HUD & アーカイブパネル */
         .hud-system { position: fixed; bottom: 40px; right: 20px; z-index: 2000; text-align: right; }
         .fav-toggle-btn {
             display: inline-block; width: 40px; height: 40px; margin-bottom: 10px;
@@ -99,14 +96,35 @@
             position: absolute; top: 68px; left: 50%; transform: translateX(-50%); 
             font-family: 'Share Tech Mono', monospace; font-size: 10px; 
             color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); 
-            white-space: nowrap; 
-            background: rgba(2, 6, 23, 0.85);
-            border: 1px solid var(--accent-cyan);
-            padding: 2px 10px;
-            border-radius: 2px;
-            box-shadow: 0 0 10px var(--accent-glow);
-            backdrop-filter: blur(4px);
+            white-space: nowrap; background: rgba(2, 6, 23, 0.85);
+            border: 1px solid var(--accent-cyan); padding: 2px 10px; border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent-glow); backdrop-filter: blur(4px);
         }
+
+        /* カレンダー専用スタイル */
+        #archive-panel {
+            position: fixed; top: 0; right: -320px; width: 280px; height: 100%; 
+            z-index: 2500; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            padding: 60px 15px; background: rgba(2, 6, 23, 0.95);
+            border-left: 1px solid var(--accent-cyan); backdrop-filter: blur(10px);
+        }
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px;
+        }
+        .calendar-day-head {
+            font-size: 10px; color: var(--accent-cyan); opacity: 0.5; text-align: center;
+        }
+        .calendar-day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-family: 'Share Tech Mono';
+            border: 1px solid rgba(56, 189, 248, 0.1); color: #475569; border-radius: 2px;
+        }
+        .calendar-day.has-log {
+            border-color: var(--accent-cyan); color: var(--accent-cyan);
+            cursor: pointer; background: rgba(56, 189, 248, 0.1);
+            box-shadow: inset 0 0 5px var(--accent-glow);
+        }
+        .calendar-day.has-log:hover { background: var(--accent-cyan); color: var(--bg-deep); }
 
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -124,10 +142,7 @@
             background: linear-gradient(90deg, transparent, #fff, transparent);
             animation: scanning-bar 1.5s infinite;
         }
-        @keyframes scanning-bar {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+        @keyframes scanning-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
     </style>
 </head>
 <body> 
@@ -155,10 +170,10 @@
         </button>
     </div>
 
-    <div id="archive-panel" class="log-window" style="position:fixed; top:0; right:-300px; width:250px; height:100%; z-index:2500; transition:0.4s; padding:60px 20px; background: rgba(2, 6, 23, 0.95);">
-        <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan);">DATA ARCHIVE</div>
-        <div id="archive-list" style="overflow-y:auto; height:80%;"></div>
-        <button onclick="toggleArchive()" style="margin-top:20px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer;">CLOSE</button>
+    <div id="archive-panel" class="log-window">
+        <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan); font-family:'Share Tech Mono';">DATA ARCHIVE</div>
+        <div id="archive-list"></div>
+        <button onclick="toggleArchive()" style="margin-top:30px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono';">CLOSE</button>
     </div>
 
     <script type="module">
@@ -257,18 +272,31 @@
         window.toggleArchive = function() {
             const panel = document.getElementById('archive-panel');
             isArchiveOpen = !isArchiveOpen;
-            panel.style.right = isArchiveOpen ? "0px" : "-300px";
+            panel.style.right = isArchiveOpen ? "0px" : "-320px";
             if(isArchiveOpen) generateArchiveList();
         };
 
         function generateArchiveList() {
             const listContainer = document.getElementById('archive-list');
-            const dates = [...new Set(allLogs.map(log => log.date))];
-            listContainer.innerHTML = dates.map(date => `
-                <div onclick="jumpToDate('${date}')" style="padding:12px; cursor:pointer; font-size:13px; color:var(--text-main); border-bottom:1px solid rgba(56,189,248,0.1); font-family: 'Share Tech Mono';">
-                    > ${date}
-                </div>
-            `).join('');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let html = `<div style="text-align:center; color:var(--accent-cyan); font-family:'Share Tech Mono'; margin-bottom:10px;">${year} / ${month + 1}</div>`;
+            html += `<div class="calendar-grid">`;
+            ['S','M','T','W','T','F','S'].forEach(d => html += `<div class="calendar-day-head">${d}</div>`);
+            for(let i=0; i<firstDay; i++) html += `<div class="calendar-day"></div>`;
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${year}.${String(month+1).padStart(2,'0')}.${String(d).padStart(2,'0')}`;
+                const hasLog = allLogs.some(log => log.date.includes(dateStr));
+                const className = hasLog ? "calendar-day has-log" : "calendar-day";
+                const onclick = hasLog ? `onclick="jumpToDate('${dateStr}')"` : "";
+                html += `<div class="${className}" ${onclick}>${d}</div>`;
+            }
+            html += `</div>`;
+            listContainer.innerHTML = html;
         }
 
         window.jumpToDate = function(date) {
@@ -278,7 +306,6 @@
             document.getElementById('mode-display').innerText = `MODE: ALL`;
             document.getElementById('fav-filter-btn').classList.remove('active');
             renderLogs();
-
             setTimeout(() => {
                 const elements = document.getElementsByClassName('timestamp-top');
                 for (let el of elements) {
@@ -287,10 +314,7 @@
                         const target = el.parentElement.parentElement;
                         target.style.boxShadow = "0 0 20px var(--accent-glow)";
                         target.style.borderColor = "var(--accent-cyan)";
-                        setTimeout(() => { 
-                            target.style.boxShadow = "none"; 
-                            target.style.borderColor = "rgba(56, 189, 248, 0.2)";
-                        }, 2000);
+                        setTimeout(() => { target.style.boxShadow = "none"; target.style.borderColor = "rgba(56, 189, 248, 0.2)"; }, 2000);
                         break;
                     }
                 }
@@ -313,9 +337,7 @@
 
         function updateBackground() {
             const hour = new Date().getHours();
-            let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : 
-                     (hour >= 12 && hour < 17) ? "noon.jpg" : 
-                     (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
+            let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : (hour >= 12 && hour < 17) ? "noon.jpg" : (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
             const bgElement = document.getElementById('fixed-bg');
             if(bgElement) bgElement.style.backgroundImage = `url('${bg}')`;
         }
