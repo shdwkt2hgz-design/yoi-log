@@ -14,27 +14,26 @@
             --window-bg: rgba(56, 189, 248, 0.05);
         }
 
+                /* --- 時間帯別の背景設定（画像がない時の予備グラデーション） --- */
+        body.morning { background: radial-gradient(circle at top, #083344, #020617); }
+        body.day     { background: radial-gradient(circle at center, #0c4a6e, #020617); }
+        body.evening { background: radial-gradient(circle at bottom, #1e1b4b, #020617); }
+        body.night   { background: radial-gradient(circle at center, #020617, #000000); }
+
         body {
             margin: 0;
             padding: 0;
             background-color: var(--bg-deep);
             color: var(--text-main);
             font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-            transition: background 1.5s ease;
             min-height: 100vh;
-    transition: background-image 1.0s ease-in-out;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+            /* 画像の設定 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            transition: background 1.5s ease; /* グラデーションも画像もふわっと切り替える */
         }
-
-        /* --- 時間帯別の背景設定 --- */
-        body.morning { background: radial-gradient(circle at top, #083344, #020617); }
-        body.day     { background: radial-gradient(circle at center, #0c4a6e, #020617); }
-        body.evening { background: radial-gradient(circle at bottom, #1e1b4b, #020617); }
-        body.night   { background: radial-gradient(circle at center, #020617, #000000); }
 
         /* --- メインコンテンツ --- */
         .container {
@@ -181,8 +180,8 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    // --- 1. Firebase Config をここに貼り付け ---
-        const firebaseConfig = {
+    // --- 1. Firebase Config ---
+    const firebaseConfig = {
         databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
         apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
         authDomain: "yoi-log.firebaseapp.com",
@@ -193,7 +192,6 @@
         measurementId: "G-W7Y12M3YMB"
     };
 
-    // 初期化
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -211,8 +209,6 @@
             loginBtn.style.display = "none";
             uidDisplay.style.display = "block";
             userUid.innerText = user.uid;
-
-            // 許可リストをチェック
             checkPermissionAndLoadLogs(user.uid);
         } else {
             loginStatus.innerText = "閲覧にはGoogleログインが必要です";
@@ -222,12 +218,11 @@
         }
     });
 
-    // ログイン処理
     document.getElementById('login-btn').onclick = () => {
         const provider = new GoogleAuthProvider();
         signInWithPopup(auth, provider).catch(err => {
             console.error(err);
-            alert("ログインに失敗しました。Firebaseの設定を確認してください。");
+            alert("ログインに失敗しました。");
         });
     };
 
@@ -235,20 +230,15 @@
     async function checkPermissionAndLoadLogs(uid) {
         const logContainer = document.getElementById('log-container');
         const whitelistRef = ref(db, 'whitelist/' + uid);
-        
         try {
             const snapshot = await get(whitelistRef);
             if (snapshot.exists() && snapshot.val() === true) {
-                // 許可されている場合
                 document.getElementById('auth-section').style.display = "none";
                 logContainer.style.display = "block";
-                
-                // データベースからログをリアルタイム取得
                 const logsRef = ref(db, 'logs');
                 onValue(logsRef, (logSnapshot) => {
                     const data = logSnapshot.val();
                     if (data) {
-                        // オブジェクト形式を配列に変換して最新順に並び替え
                         const logData = Object.keys(data).map(key => data[key]);
                         logData.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
                         renderLogs(logData);
@@ -260,98 +250,99 @@
         }
     }
 
-    // --- 5. 修正版：表示用関数 ---
-function renderLogs(logData) {
-    const container = document.getElementById('log-container');
-    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-
-    container.innerHTML = logData.map((log, index) => {
-        const isFav = favorites.includes(log.date);
-        return `
-            <div class="log-window" id="log-${index}">
-                <div class="log-meta">
-                    <span class="timestamp-top">${log.date}</span>
+    // --- 5. 表示用関数 ---
+    function renderLogs(logData) {
+        const container = document.getElementById('log-container');
+        const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+        container.innerHTML = logData.map((log, index) => {
+            const isFav = favorites.includes(log.date);
+            return `
+                <div class="log-window" id="log-${index}">
+                    <div class="log-meta">
+                        <span class="timestamp-top">${log.date}</span>
+                    </div>
+                    <div class="log-text">${log.text}</div>
+                    <div class="log-footer">
+                        <span class="hashtags">${log.tags}</span>
+                        <button class="star-btn ${isFav ? 'active' : ''}" 
+                                onclick="favLog(this, '${log.date}')">★</button>
+                    </div>
                 </div>
-                <div class="log-text">${log.text}</div>
-                <div class="log-footer">
-                    <span class="hashtags">${log.tags}</span>
-                    <button class="star-btn ${isFav ? 'active' : ''}" 
-                            onclick="favLog(this, '${log.date}')">★</button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// --- 背景更新関数の統合 ---
-function updateBackground() {
-    const hour = new Date().getHours();
-    const body = document.body;
-    let bgImage = "";
-
-    // 1. 時間帯によって画像を選択
-    if (hour >= 6 && hour < 12) {
-        bgImage = ""; // 朝
-    } else if (hour >= 12 && hour < 17) {
-        bgImage = "";    // 昼
-    } else if (hour >= 17 && hour < 20) {
-        bgImage = ""; // 夕
-    } else {
-        bgImage = "";   // 晩
+            `;
+        }).join('');
     }
 
-    // 2. 背景画像を適用
-    body.style.backgroundImage = bgImage;
+    // --- 背景更新関数の修正版 ---
+    function updateBackground() {
+        const hour = new Date().getHours();
+        const body = document.body;
+        let bgImage = "";
 
-    // (予備) クラスも切り替えておくと、文字色を時間で変えたい時に便利です
-    body.classList.remove('morning', 'day', 'evening', 'night');
-    if (hour >= 6 && hour < 12) body.classList.add('morning');
-    else if (hour >= 12 && hour < 17) body.classList.add('day');
-    else if (hour >= 17 && hour < 20) body.classList.add('evening');
-    else body.classList.add('night');
-}
+        // 時間帯判定とクラス付与
+        if (hour >= 6 && hour < 12) {
+            bgImage = "morning.jpg";
+            body.className = "morning";
+        } else if (hour >= 12 && hour < 17) {
+            bgImage = "noon.jpg";
+            body.className = "day";
+        } else if (hour >= 17 && hour < 20) {
+            bgImage = "evening.jpg";
+            body.className = "evening";
+        } else {
+            bgImage = "night.jpg";
+            body.className = "night";
+        }
 
-// 実行
-updateBackground();
-setInterval(updateBackground, 60000);
+        // 画像の読み込みチェック
+        const img = new Image();
+        img.src = bgImage;
+        img.onload = () => {
+            body.style.backgroundImage = `url('${bgImage}')`;
+        };
+        img.onerror = () => {
+            body.style.backgroundImage = "none";
+        };
+    }
 
-// お気に入り処理とアニメーション（ここをスッキリ統合！）
-window.favLog = function(btn, logId) {
-    const isActivating = !btn.classList.contains('active');
-    btn.classList.toggle('active');
+    // 実行
+    updateBackground();
+    setInterval(updateBackground, 60000);
 
-    let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-    
-    if (isActivating) {
-        if (!favorites.includes(logId)) favorites.push(logId);
+    // お気に入り処理とアニメーション
+    window.favLog = function(btn, logId) {
+        const isActivating = !btn.classList.contains('active');
+        btn.classList.toggle('active');
+
+        let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
         
-        // --- 星を飛ばす演出 ---
-        const rect = btn.getBoundingClientRect();
-        const star = document.createElement('div');
-        star.className = 'flying-star';
-        star.innerText = '★';
-        star.style.position = 'fixed';
-        star.style.left = rect.left + 'px';
-        star.style.top = rect.top + 'px';
-        star.style.opacity = '1';
-        document.body.appendChild(star);
+        if (isActivating) {
+            if (!favorites.includes(logId)) favorites.push(logId);
+            
+            const rect = btn.getBoundingClientRect();
+            const star = document.createElement('div');
+            star.className = 'flying-star';
+            star.innerText = '★';
+            star.style.position = 'fixed';
+            star.style.left = rect.left + 'px';
+            star.style.top = rect.top + 'px';
+            star.style.opacity = '1';
+            document.body.appendChild(star);
 
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                star.style.left = (window.innerWidth - 40) + 'px';
-                star.style.top = '20px';
-                star.style.opacity = '0';
-                star.style.transform = 'scale(0.2) rotate(720deg)';
-            }, 20);
-        });
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    star.style.left = (window.innerWidth - 40) + 'px';
+                    star.style.top = '20px';
+                    star.style.opacity = '0';
+                    star.style.transform = 'scale(0.2) rotate(720deg)';
+                }, 20);
+            });
 
-        setTimeout(() => star.remove(), 1000);
-
-    } else {
-        favorites = favorites.filter(id => id !== logId);
-    }
-    localStorage.setItem('yoi_favs', JSON.stringify(favorites));
-};
+            setTimeout(() => star.remove(), 1000);
+        } else {
+            favorites = favorites.filter(id => id !== logId);
+        }
+        localStorage.setItem('yoi_favs', JSON.stringify(favorites));
+    };
 </script>
 
 </body>
