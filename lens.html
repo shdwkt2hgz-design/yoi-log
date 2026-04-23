@@ -18,12 +18,22 @@
         }
 
         body {
-            margin: 0; padding: 0; background-color: var(--bg-deep); color: var(--text-main);
-            font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-            min-height: 100vh; background-size: cover; background-position: center;
-            background-attachment: fixed; background-repeat: no-repeat;
-            transition: background 1.5s ease;
-        }
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-deep);
+    color: var(--text-main);
+    font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
+    min-height: 100vh;
+    
+    /* 背景画像の設定をこちらに集約 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* これがスクロールさせない魔法のプロパティ */
+    
+    /* モバイルブラウザでの挙動を安定させるため、こちらを推奨 */
+    background-image: none; 
+}
 
         .container { padding: 40px 20px 140px; max-width: 500px; margin: 0 auto; }
         .header-title { text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; }
