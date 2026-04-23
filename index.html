@@ -105,9 +105,51 @@
             color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); 
             white-space: nowrap; opacity: 0.9; 
         }
+
+        /* 起動画面の見た目 */
+#loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--bg-deep);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease;
+}
+
+/* スキャンラインの動き */
+.scan-line {
+    width: 200px;
+    height: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 15px var(--accent-cyan);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.scan-line::after {
+    content: "";
+    display: block; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    animation: scanning-bar 1.5s infinite;
+}
+@keyframes scanning-bar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+        
     </style>
 </head>
 <body> 
+    <div id="loading-overlay">
+        <div class="scan-line"></div>
+        <div style="font-family: 'Share Tech Mono'; color: var(--accent-cyan); letter-spacing: 5px; font-size: 12px;">
+            SYSTEM INITIALIZING...
+        </div>
+    </div>
     <div id="fixed-bg"></div>
 
     <div class="container">
@@ -162,6 +204,26 @@
             }
         });
 
+        // 【爆速化】背景画像の先読み
+['morning.jpg', 'noon.jpg', 'evening.jpg', 'night.jpg'].forEach(src => {
+    const img = new Image();
+    img.src = src;
+});
+
+// 【演出終了】データが読み込まれたら画面を消す関数
+let isFirstLoad = true;
+
+function hideLoading() {
+    if (!isFirstLoad) return; // 2回目以降は無視
+    isFirstLoad = false;
+    
+    const overlay = document.getElementById('loading-overlay');
+    if(overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 800);
+    }
+}
+
         document.getElementById('login-btn').onclick = () => {
             signInWithPopup(auth, new GoogleAuthProvider()).catch(err => console.error(err));
         };
@@ -183,10 +245,11 @@
             }
         }
 
-        function renderLogs() {
+function renderLogs() {
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             let filtered = allLogs;
+            
             if (isFavOnly) filtered = filtered.filter(log => favorites.includes(log.date));
             if (currentFilter !== 'ALL') filtered = filtered.filter(log => log.tags && log.tags.includes(currentFilter));
 
@@ -200,6 +263,9 @@
                     </div>
                 </div>
             `).join('');
+
+            // 【追加】ここで演出を終了させる！
+            hideLoading();
         }
 
         window.toggleNextMode = function() {
@@ -230,4 +296,21 @@
         updateBackground();
         setInterval(updateBackground, 60000);
 
+        // お気に入り登録の処理
         window.favLog = function(btn, logId) {
+            let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            if (favorites.includes(logId)) {
+                favorites = favorites.filter(id => id !== logId);
+                btn.classList.remove('active');
+            } else {
+                favorites.push(logId);
+                btn.classList.add('active');
+            }
+            localStorage.setItem('yoi_favs', JSON.stringify(favorites));
+            
+            // お気に入りモード中なら、解除した瞬間にリストから消すために再描画
+            if (isFavOnly) renderLogs();
+        };
+    </script>
+</body>
+</html>
