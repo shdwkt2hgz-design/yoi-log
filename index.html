@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>虚星宵 - Personal Log Viewer (HUD)</title>
     <style>
-/* 1. フォント読み込み（英数字 + 日本語「Zen Kaku Gothic」を追加） */
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
+        /* 1. フォント読み込み */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
         
         /* 2. 変数設定 */
         :root {
@@ -37,14 +37,13 @@
         }
 
         /* 5. ベースデザイン */
-body {
-    margin: 0; padding: 0; 
-    background-color: transparent;
-    color: var(--text-main);
-    /* ここを書き換え！ */
-    font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-    min-height: 100vh;
-}
+        body {
+            margin: 0; padding: 0; 
+            background-color: transparent;
+            color: var(--text-main);
+            font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
+            min-height: 100vh;
+        }
 
         #fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -59,7 +58,6 @@ body {
             color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; 
         }
 
-        /* 6. ログウィンドウ（アニメーション追加） */
         .log-window {
             position: relative; background: var(--window-bg); border: 1px solid rgba(56, 189, 248, 0.2);
             padding: 10px 15px; margin-bottom: 15px; backdrop-filter: blur(4px);
@@ -67,7 +65,6 @@ body {
             animation: logAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
         }
         
-        /* 枠の角のデザイン */
         .log-window::before { content: ""; position: absolute; top: -1px; left: -1px; width: 15px; height: 15px; border-top: 2px solid var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
         .log-window::after { content: ""; position: absolute; bottom: -1px; right: -1px; width: 15px; height: 15px; border-bottom: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan); }
         
@@ -80,7 +77,6 @@ body {
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: 'Share Tech Mono', monospace; font-size: 10px; opacity: 0.5; }
 
-        /* 7. HUDシステム */
         .hud-system { position: fixed; bottom: 40px; right: 20px; z-index: 2000; text-align: right; }
         .fav-toggle-btn {
             display: inline-block; width: 40px; height: 40px; margin-bottom: 10px;
@@ -99,69 +95,45 @@ body {
             display: flex; align-items: center; justify-content: center;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-.current-mode-display { 
-    position: absolute; 
-    top: 68px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    font-family: 'Share Tech Mono', monospace; 
-    font-size: 10px; 
-    color: var(--accent-cyan); 
-    text-shadow: 0 0 8px var(--accent-glow); 
-    white-space: nowrap; 
+        .current-mode-display { 
+            position: absolute; top: 68px; left: 50%; transform: translateX(-50%); 
+            font-family: 'Share Tech Mono', monospace; font-size: 10px; 
+            color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); 
+            white-space: nowrap; 
+            background: rgba(2, 6, 23, 0.85);
+            border: 1px solid var(--accent-cyan);
+            padding: 2px 10px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent-glow);
+            backdrop-filter: blur(4px);
+        }
 
-    /* 背景と枠を追加 */
-    background: rgba(2, 6, 23, 0.85);      /* 視認性を上げるための暗い背景 */
-    border: 1px solid var(--accent-cyan); /* HUDらしい細い枠線 */
-    padding: 2px 10px;                    /* 少し横長に余裕を持たせる */
-    border-radius: 2px;
-    box-shadow: 0 0 10px var(--accent-glow); /* 枠ごと発光 */
-    backdrop-filter: blur(4px);           /* 背景を透かしつつボカす */
-}
-
-        /* 起動画面の見た目 */
-#loading-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: var(--bg-deep);
-    z-index: 3000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.8s ease;
-}
-
-/* スキャンラインの動き */
-.scan-line {
-    width: 200px;
-    height: 2px;
-    background: var(--accent-cyan);
-    box-shadow: 0 0 15px var(--accent-cyan);
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-.scan-line::after {
-    content: "";
-    display: block; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, #fff, transparent);
-    animation: scanning-bar 1.5s infinite;
-}
-@keyframes scanning-bar {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-        
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep); z-index: 3000; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .scan-line {
+            width: 200px; height: 2px; background: var(--accent-cyan);
+            box-shadow: 0 0 15px var(--accent-cyan); position: relative;
+            overflow: hidden; margin-bottom: 20px;
+        }
+        .scan-line::after {
+            content: ""; display: block; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            animation: scanning-bar 1.5s infinite;
+        }
+        @keyframes scanning-bar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
     </style>
 </head>
 <body> 
     <div id="loading-overlay">
         <div class="scan-line"></div>
-        <div style="font-family: 'Share Tech Mono'; color: var(--accent-cyan); letter-spacing: 5px; font-size: 12px;">
-            SYSTEM INITIALIZING...
-        </div>
+        <div style="font-family: 'Share Tech Mono'; color: var(--accent-cyan); letter-spacing: 5px; font-size: 12px;">SYSTEM INITIALIZING...</div>
     </div>
     <div id="fixed-bg"></div>
 
@@ -174,21 +146,20 @@ body {
         <div id="log-container" style="display:none;"></div>
     </div>
 
-<div class="hud-system" id="hud-ui" style="display:none;">
-    <div><button class="fav-toggle-btn" id="calendar-btn" onclick="toggleArchive()">📅</button></div>
-    <div><button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button></div>
-    <button class="mode-btn" onclick="toggleNextMode()">
-        <div style="font-size: 24px;">🛰️</div>
-        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
-    </button>
-</div>
+    <div class="hud-system" id="hud-ui" style="display:none;">
+        <div><button class="fav-toggle-btn" id="calendar-btn" onclick="toggleArchive()">📅</button></div>
+        <div><button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button></div>
+        <button class="mode-btn" onclick="toggleNextMode()">
+            <div style="font-size: 24px;">🛰️</div>
+            <div class="current-mode-display" id="mode-display">MODE: ALL</div>
+        </button>
+    </div>
 
-<div id="archive-panel" class="log-window" style="position:fixed; top:0; right:-300px; width:250px; height:100%; z-index:2500; transition:0.4s; padding:60px 20px; background: rgba(2, 6, 23, 0.95);">
-    <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan);">DATA ARCHIVE</div>
-    <div id="archive-list" style="overflow-y:auto; height:80%;">
-        </div>
-    <button onclick="toggleArchive()" style="margin-top:20px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer;">CLOSE</button>
-</div>
+    <div id="archive-panel" class="log-window" style="position:fixed; top:0; right:-300px; width:250px; height:100%; z-index:2500; transition:0.4s; padding:60px 20px; background: rgba(2, 6, 23, 0.95);">
+        <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan);">DATA ARCHIVE</div>
+        <div id="archive-list" style="overflow-y:auto; height:80%;"></div>
+        <button onclick="toggleArchive()" style="margin-top:20px; background:none; border:1px solid var(--accent-cyan); color:var(--accent-cyan); width:100%; cursor:pointer;">CLOSE</button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -225,25 +196,20 @@ body {
             }
         });
 
-        // 【爆速化】背景画像の先読み
-['morning.jpg', 'noon.jpg', 'evening.jpg', 'night.jpg'].forEach(src => {
-    const img = new Image();
-    img.src = src;
-});
+        ['morning.jpg', 'noon.jpg', 'evening.jpg', 'night.jpg'].forEach(src => {
+            const img = new Image(); img.src = src;
+        });
 
-// 【演出終了】データが読み込まれたら画面を消す関数
-let isFirstLoad = true;
-
-function hideLoading() {
-    if (!isFirstLoad) return; // 2回目以降は無視
-    isFirstLoad = false;
-    
-    const overlay = document.getElementById('loading-overlay');
-    if(overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 800);
-    }
-}
+        let isFirstLoad = true;
+        function hideLoading() {
+            if (!isFirstLoad) return;
+            isFirstLoad = false;
+            const overlay = document.getElementById('loading-overlay');
+            if(overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 800);
+            }
+        }
 
         document.getElementById('login-btn').onclick = () => {
             signInWithPopup(auth, new GoogleAuthProvider()).catch(err => console.error(err));
@@ -266,14 +232,12 @@ function hideLoading() {
             }
         }
 
-        /* --- 1. ここにアーカイブ（カレンダー）用の変数を追加 --- */
         let isArchiveOpen = false;
 
-function renderLogs() {
+        function renderLogs() {
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             let filtered = allLogs;
-            
             if (isFavOnly) filtered = filtered.filter(log => favorites.includes(log.date));
             if (currentFilter !== 'ALL') filtered = filtered.filter(log => log.tags && log.tags.includes(currentFilter));
 
@@ -287,13 +251,9 @@ function renderLogs() {
                     </div>
                 </div>
             `).join('');
-
-            // 【追加】ここで演出を終了させる！
             hideLoading();
         }
 
-        /* --- 3. ここにアーカイブ操作用の関数をまとめて追加 --- */
-        // パネルの開閉
         window.toggleArchive = function() {
             const panel = document.getElementById('archive-panel');
             isArchiveOpen = !isArchiveOpen;
@@ -301,7 +261,6 @@ function renderLogs() {
             if(isArchiveOpen) generateArchiveList();
         };
 
-        // リスト生成
         function generateArchiveList() {
             const listContainer = document.getElementById('archive-list');
             const dates = [...new Set(allLogs.map(log => log.date))];
@@ -312,7 +271,6 @@ function renderLogs() {
             `).join('');
         }
 
-        // 日付ジャンプ
         window.jumpToDate = function(date) {
             toggleArchive();
             currentFilter = 'ALL';
@@ -358,16 +316,12 @@ function renderLogs() {
             let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : 
                      (hour >= 12 && hour < 17) ? "noon.jpg" : 
                      (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
-            
             const bgElement = document.getElementById('fixed-bg');
-            if(bgElement) {
-                bgElement.style.backgroundImage = `url('${bg}')`;
-            }
+            if(bgElement) bgElement.style.backgroundImage = `url('${bg}')`;
         }
         updateBackground();
         setInterval(updateBackground, 60000);
 
-        // お気に入り登録の処理
         window.favLog = function(btn, logId) {
             let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             if (favorites.includes(logId)) {
@@ -378,8 +332,6 @@ function renderLogs() {
                 btn.classList.add('active');
             }
             localStorage.setItem('yoi_favs', JSON.stringify(favorites));
-            
-            // お気に入りモード中なら、解除した瞬間にリストから消すために再描画
             if (isFavOnly) renderLogs();
         };
     </script>
