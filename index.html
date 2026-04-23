@@ -22,6 +22,12 @@
             font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
             transition: background 1.5s ease;
             min-height: 100vh;
+    transition: background-image 1.0s ease-in-out;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
         }
 
         /* --- 時間帯別の背景設定 --- */
@@ -128,6 +134,22 @@
     margin-top: 4px; /* ここでテキストとの距離を微調整 */
 }
 
+/* 飛んでいく星のスタイル */
+.flying-star {
+    position: fixed;
+    z-index: 9999;
+    color: #fbbf24;
+    font-size: 1.5rem;
+    pointer-events: none;
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* お気に入りボタンのホバー演出 */
+.star-btn:active {
+    transform: scale(1.5);
+    transition: transform 0.1s;
+}
+
     </style>
 </head>
 <body class="night"> 
@@ -175,19 +197,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-
-    // --- 2. 既存の背景更新（そのまま移植） ---
-    function updateTheme() {
-        const hour = new Date().getHours();
-        const body = document.body;
-        body.classList.remove('morning', 'day', 'evening', 'night');
-        if (hour >= 4 && hour < 10) body.classList.add('morning');
-        else if (hour >= 10 && hour < 16) body.classList.add('day');
-        else if (hour >= 16 && hour < 21) body.classList.add('evening');
-        else body.classList.add('night');
-    }
-    updateTheme();
-    setInterval(updateTheme, 60000);
 
     // --- 3. ログイン状態の監視 ---
     onAuthStateChanged(auth, async (user) => {
@@ -251,22 +260,98 @@
         }
     }
 
-    // --- 5. 既存の表示用関数（そのまま移植） ---
-    function renderLogs(logData) {
-        const container = document.getElementById('log-container');
-        container.innerHTML = logData.map(log => `
-            <div class="log-window">
+    // --- 5. 修正版：表示用関数 ---
+function renderLogs(logData) {
+    const container = document.getElementById('log-container');
+    // 保存されているお気に入りリストを取得
+    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+
+    container.innerHTML = logData.map((log, index) => {
+        const isFav = favorites.includes(log.date); // 日時をID代わりに使用
+        return `
+            <div class="log-window" id="log-${index}">
                 <div class="log-meta">
                     <span class="timestamp-top">${log.date}</span>
                 </div>
                 <div class="log-text">${log.text}</div>
                 <div class="log-footer">
                     <span class="hashtags">${log.tags}</span>
-                    <button class="star-btn" onclick="this.classList.toggle('active')">★</button>
+                    <button class="star-btn ${isFav ? 'active' : ''}" 
+                            onclick="favLog(this, '${log.date}')">★</button>
                 </div>
             </div>
-        `).join('');
+        `;
+    }).join('');
+}
+
+// --- 背景更新関数の統合 ---
+function updateBackground() {
+    const hour = new Date().getHours();
+    const body = document.body;
+    let bgImage = "";
+
+    // 1. 時間帯によって画像を選択
+    if (hour >= 6 && hour < 12) {
+        bgImage = "url('morning.jpg')"; // 朝
+    } else if (hour >= 12 && hour < 17) {
+        bgImage = "url('noon.jpg')";    // 昼
+    } else if (hour >= 17 && hour < 20) {
+        bgImage = "url('evening.jpg')"; // 夕
+    } else {
+        bgImage = "url('night.jpg')";   // 晩
     }
+
+    // 2. 背景画像を適用
+    body.style.backgroundImage = bgImage;
+
+    // (予備) クラスも切り替えておくと、文字色を時間で変えたい時に便利です
+    body.classList.remove('morning', 'day', 'evening', 'night');
+    if (hour >= 6 && hour < 12) body.classList.add('morning');
+    else if (hour >= 12 && hour < 17) body.classList.add('day');
+    else if (hour >= 17 && hour < 20) body.classList.add('evening');
+    else body.classList.add('night');
+}
+
+// 実行
+updateBackground();
+setInterval(updateBackground, 60000);
+
+// お気に入り処理とアニメーション
+window.favLog = function(btn, logId) {
+    const isActivating = !btn.classList.contains('active');
+    btn.classList.toggle('active');
+
+    // お気に入りリストの更新
+    let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+    if (isActivating) {
+        if (!favorites.includes(logId)) favorites.push(logId);
+        
+        // --- 星を飛ばす演出 ---
+        const rect = btn.getBoundingClientRect();
+        const star = document.createElement('div');
+        star.className = 'flying-star';
+        star.innerText = '★';
+        star.style.left = rect.left + 'px';
+        star.style.top = rect.top + 'px';
+        document.body.appendChild(star);
+
+        // 0.1秒後に右上へ飛ばす
+        setTimeout(() => {
+            star.style.left = (window.innerWidth - 50) + 'px';
+            star.style.top = '20px';
+            star.style.opacity = '0';
+            star.style.transform = 'scale(0.5) rotate(360deg)';
+        }, 50);
+
+        // アニメーションが終わったら要素を消す
+        setTimeout(() => star.remove(), 800);
+
+    } else {
+        favorites = favorites.filter(id => id !== logId);
+    }
+    localStorage.setItem('yoi_favs', JSON.stringify(favorites));
+};
+
 </script>
 
 </body>
