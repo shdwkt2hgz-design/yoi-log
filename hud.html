@@ -9,8 +9,10 @@
             --bg-deep: #020617;
             --accent-cyan: #38bdf8;
             --accent-purple: #a855f7;
+            --accent-gold: #fbbf24; /* お気に入りON時の金 */
             --accent-glow: rgba(56, 189, 248, 0.3);
             --purple-glow: rgba(168, 85, 247, 0.4);
+            --gold-glow: rgba(251, 191, 36, 0.4);
             --text-main: #f8fafc;
             --window-bg: rgba(56, 189, 248, 0.05);
         }
@@ -26,7 +28,6 @@
         .container { padding: 40px 20px 140px; max-width: 500px; margin: 0 auto; }
         .header-title { text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; }
 
-        /* --- ログウィンドウ --- */
         .log-window {
             position: relative; background: var(--window-bg); border: 1px solid rgba(56, 189, 248, 0.2);
             padding: 10px 15px; margin-bottom: 15px; backdrop-filter: blur(4px);
@@ -37,25 +38,30 @@
         .log-text { font-size: 13px; line-height: 1.6; word-wrap: break-word; min-height: 3em; }
         .log-footer { margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
         .star-btn { background: none; border: none; color: #475569; font-size: 1.2rem; cursor: pointer; transition: color 0.3s; }
-        .star-btn.active { color: #fbbf24; }
+        .star-btn.active { color: var(--accent-gold); }
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
 
-        /* --- HUDコントロール：お気に入り独立版 --- */
+        /* --- HUDコントロール：★スイッチ版 --- */
         .hud-system { position: fixed; bottom: 40px; right: 20px; z-index: 2000; text-align: right; }
         
-        /* お気に入りボタン（四角いタグ） */
+        /* ★アイコンのみのフィルタボタン */
         .fav-toggle-btn {
-            display: inline-block; padding: 5px 15px; margin-bottom: 15px;
-            border-radius: 2px; background: rgba(2, 6, 23, 0.9); border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan); font-size: 11px; font-weight: bold; cursor: pointer;
-            backdrop-filter: blur(4px); transition: all 0.3s; box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .fav-toggle-btn.active {
-            border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+            display: inline-block; width: 40px; height: 40px; margin-bottom: 10px;
+            border-radius: 4px; background: rgba(2, 6, 23, 0.9); border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan); font-size: 20px; cursor: pointer;
+            backdrop-filter: blur(4px); transition: all 0.4s; box-shadow: 0 0 10px var(--accent-glow);
+            line-height: 40px; padding: 0;
         }
 
-        /* メインの計器（丸ボタン） */
+        /* ON時のゴールド状態 */
+        .fav-toggle-btn.active {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            box-shadow: 0 0 15px var(--gold-glow);
+            transform: scale(1.1);
+        }
+
         .mode-btn {
             width: 60px; height: 60px; border-radius: 50%;
             background: rgba(2, 6, 23, 0.9); border: 2px solid var(--accent-cyan);
@@ -72,12 +78,12 @@
             text-shadow: 0 0 8px var(--accent-glow); white-space: nowrap; opacity: 0.9;
         }
 
-        .flying-star { position: fixed; z-index: 9999; color: #fbbf24; font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
+        .flying-star { position: fixed; z-index: 9999; color: var(--accent-gold); font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
     </style>
 </head>
 <body class="night"> 
     <div class="container">
-        <div class="header-title">Ryusei Yoi / Personal Log Viewer</div>
+        <div class="header-title">Ryusei Yoi / Personal Log Viewer (HUD)</div>
         <div id="auth-section" class="log-window" style="text-align: center; padding: 30px 10px;">
             <div id="login-status">読み込み中...</div>
             <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Googleログイン</button>
@@ -87,7 +93,7 @@
 
     <div class="hud-system" id="hud-ui" style="display:none;">
         <div>
-            <button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">FAVORITES: OFF</button>
+            <button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button>
         </div>
         <button class="mode-btn" onclick="toggleNextMode()">
             <div style="font-size: 24px;">🛰️</div>
@@ -155,7 +161,6 @@
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             
-            // フィルタリング処理
             let filtered = allLogs;
             if (isFavOnly) {
                 filtered = filtered.filter(log => favorites.includes(log.date));
@@ -176,7 +181,6 @@
             `).join('');
         }
 
-        // ジャンル切り替え（順次）
         window.toggleNextMode = function() {
             let idx = modes.indexOf(currentFilter);
             idx = (idx + 1) % modes.length;
@@ -185,12 +189,11 @@
             renderLogs();
         };
 
-        // お気に入りモード切り替え
         window.toggleFavMode = function() {
             isFavOnly = !isFavOnly;
             const btn = document.getElementById('fav-filter-btn');
             btn.classList.toggle('active');
-            btn.innerText = isFavOnly ? 'FAVORITES: ON' : 'FAVORITES: OFF';
+            // innerText の書き換えを削除し、クラスの切り替えだけで色を制御
             renderLogs();
         };
 
