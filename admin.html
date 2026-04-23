@@ -3,45 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Log Generator</title>
+    <title>Admin - Log Manager</title>
 <style>
     :root {
         --bg: #020617;
         --accent: #38bdf8;
         --panel: #1e293b;
         --text: #f8fafc;
+        --danger: #ef4444;
     }
-    body {
-        background-color: var(--bg);
-        color: var(--text);
-        font-family: sans-serif;
-        padding: 20px;
-        margin: 0;
-    }
+    body { background-color: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; margin: 0; }
     .admin-container { max-width: 500px; margin: 0 auto; }
-    header {
-        font-weight: bold; letter-spacing: 0.2em; color: var(--accent);
-        margin-bottom: 20px; text-align: center;
-    }
+    header { font-weight: bold; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 20px; text-align: center; }
     .input-group { margin-bottom: 20px; }
     label { display: block; font-size: 0.7rem; margin-bottom: 8px; opacity: 0.6; }
-    
     textarea, input {
         width: 100%; background: var(--panel); border: 1px solid rgba(56, 189, 248, 0.2);
-        color: var(--text); padding: 12px; border-radius: 4px; box-sizing: border-box;
-        font-size: 16px;
+        color: var(--text); padding: 12px; border-radius: 4px; box-sizing: border-box; font-size: 16px;
     }
-    
     .tag-shortcuts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
     .tag-shortcuts button {
         background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent);
         color: var(--accent); padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;
     }
+    #postBtn { width: 100%; padding: 15px; background: var(--accent); border: none; color: var(--bg); font-weight: bold; border-radius: 4px; cursor: pointer; }
     
-    #postBtn {
-        width: 100%; padding: 15px; background: var(--accent); border: none;
-        color: var(--bg); font-weight: bold; border-radius: 4px; cursor: pointer;
-    }
+    /* 削除リスト用のスタイル */
+    .log-list { margin-top: 40px; border-top: 1px solid rgba(56, 189, 248, 0.2); padding-top: 20px; }
+    .log-item { background: var(--panel); padding: 10px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .log-item-info { font-size: 0.8rem; flex: 1; margin-right: 10px; }
+    .log-item-date { color: var(--accent); font-size: 0.7rem; margin-bottom: 4px; }
+    .delete-btn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
     
     #status { margin-top: 20px; font-size: 0.8rem; text-align: center; color: var(--accent); }
     #login-section { text-align: center; margin-top: 50px; }
@@ -49,12 +41,10 @@
 </head>
 <body>
     <div class="admin-container">
-        <header>LOG GENERATOR (ADMIN)</header>
+        <header>LOG MANAGER</header>
         
         <div id="login-section">
-            <button id="login-btn" style="padding: 15px 30px; background: var(--accent); border: none; border-radius: 4px; font-weight: bold;">
-                GOOGLE LOGIN
-            </button>
+            <button id="login-btn" style="padding: 15px 30px; background: var(--accent); border: none; border-radius: 4px; font-weight: bold;">GOOGLE LOGIN</button>
             <p id="auth-status" style="margin-top: 15px; font-size: 0.8rem; opacity: 0.6;">管理者ログインが必要です</p>
         </div>
 
@@ -64,29 +54,30 @@
                 <textarea id="logText" placeholder="今の思考を記録..." rows="5"></textarea>
                 <div id="charCount" style="text-align: right; font-size: 0.8rem; margin-top: 4px;">0 / 140</div>
             </div>
-
             <div class="input-group">
                 <label>TAGS</label>
                 <div class="tag-shortcuts">
                     <button type="button" class="tag-btn">#思考</button>
                     <button type="button" class="tag-btn">#制作ログ</button>
                     <button type="button" class="tag-btn">#日常</button>
-                    <button type="button" class="tag-btn">#宇宙</button>
                 </div>
                 <input type="text" id="logTags" placeholder="#タグを入力">
             </div>
-
-            <button id="postBtn">POST TO FIREBASE</button>
+            <button id="postBtn">投稿する</button>
             <p id="status"></p>
+
+            <div class="log-list">
+                <label>最近の投稿（削除用）</label>
+                <div id="logItems"></div>
+            </div>
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getDatabase, ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+    import { getDatabase, ref, push, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    // --- Firebase設定 ---
     const firebaseConfig = {
         databaseURL: "https://yoi-log-default-rtdb.firebaseio.com",
         apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
@@ -104,85 +95,80 @@
 
     const loginSection = document.getElementById('login-section');
     const adminSection = document.getElementById('admin-section');
-    const status = document.getElementById('status');
+    const logItemsDiv = document.getElementById('logItems');
 
     // ログイン処理
     document.getElementById('login-btn').onclick = () => {
-        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("ログイン失敗: " + err.message));
+        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("ログイン失敗"));
     };
 
-    // ログイン監視
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const snapshot = await get(ref(db, `whitelist/${user.uid}`));
             if (snapshot.exists() && snapshot.val() === true) {
                 loginSection.style.display = 'none';
                 adminSection.style.display = 'block';
-                status.innerText = "ACCESS GRANTED";
-            } else {
-                document.getElementById('auth-status').innerText = "PERMISSION DENIED (UID: " + user.uid + ")";
+                loadLogs(); // 投稿リストを読み込む
             }
         }
     });
+
+    // 投稿リストを表示する機能
+    function loadLogs() {
+        const logsRef = ref(db, 'logs');
+        onValue(logsRef, (snapshot) => {
+            logItemsDiv.innerHTML = "";
+            const data = snapshot.val();
+            if (!data) return;
+
+            // 新しい順に並び替えるために配列にする
+            const entries = Object.entries(data).reverse();
+            entries.forEach(([id, val]) => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `
+                    <div class="log-item-info">
+                        <div class="log-item-date">${val.date}</div>
+                        <div>${val.text.substring(0, 20)}...</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteLog('${id}')">削除</button>
+                `;
+                logItemsDiv.appendChild(item);
+            });
+        });
+    }
+
+    // 削除を実行する機能（グローバルに公開）
+    window.deleteLog = (id) => {
+        if (confirm("このログを削除していいですか？")) {
+            remove(ref(db, `logs/${id}`))
+                .then(() => alert("削除しました"))
+                .catch(err => alert("削除失敗: " + err.message));
+        }
+    };
+
+    // 投稿処理 (中略... さっきと同じ)
+    document.getElementById('postBtn').onclick = async () => {
+        const text = document.getElementById('logText').value;
+        const tags = document.getElementById('logTags').value;
+        if (!text) return alert("本文を入力してください");
+        try {
+            const newLogRef = push(ref(db, 'logs'));
+            const now = new Date();
+            const timestamp = now.getFullYear() + "." + ("0" + (now.getMonth() + 1)).slice(-2) + "." + ("0" + now.getDate()).slice(-2) + " " + ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2) + ":" + ("0" + now.getSeconds()).slice(-2);
+            await set(newLogRef, { date: timestamp, text: text, tags: tags });
+            document.getElementById('logText').value = "";
+            alert("投稿完了！");
+        } catch (e) { alert("エラー: " + e.message); }
+    };
 
     // タグ追加
     document.querySelectorAll('.tag-btn').forEach(btn => {
         btn.onclick = () => {
             const tagInput = document.getElementById('logTags');
-            const tag = btn.innerText;
-            if (!tagInput.value.includes(tag)) {
-                tagInput.value += (tagInput.value ? ' ' : '') + tag;
-            }
+            if (!tagInput.value.includes(btn.innerText)) tagInput.value += (tagInput.value ? ' ' : '') + btn.innerText;
         };
     });
-
-    // 文字数カウント
-    document.getElementById('logText').addEventListener('input', (e) => {
-        const length = e.target.value.length;
-        const countDisplay = document.getElementById('charCount');
-        countDisplay.innerText = `${length} / 140`;
-        countDisplay.style.color = length > 140 ? '#ef4444' : 'inherit';
-    });
-
-    // 投稿処理
-    document.getElementById('postBtn').onclick = async () => {
-        const text = document.getElementById('logText').value;
-        const tags = document.getElementById('logTags').value;
-        
-        if (!text) return alert("TEXT IS EMPTY");
-
-        try {
-            const newLogRef = push(ref(db, 'logs'));
-            const now = new Date();
-            const timestamp = now.getFullYear() + "." + 
-                ("0" + (now.getMonth() + 1)).slice(-2) + "." + 
-                ("0" + now.getDate()).slice(-2) + " " + 
-                ("0" + now.getHours()).slice(-2) + ":" + 
-                ("0" + now.getMinutes()).slice(-2) + ":" + 
-                ("0" + now.getSeconds()).slice(-2);
-
-            await set(newLogRef, {
-                date: timestamp,
-                text: text,
-                tags: tags
-            });
-
-            const originalBtnText = postBtn.innerText;
-            postBtn.innerText = "SUCCESS!";
-            postBtn.style.background = "#22c55e";
-            
-            document.getElementById('logText').value = "";
-            document.getElementById('charCount').innerText = "0 / 140";
-
-            setTimeout(() => {
-                postBtn.innerText = originalBtnText;
-                postBtn.style.background = "";
-            }, 2000);
-
-        } catch (e) {
-            alert("POST FAILED: " + e.message);
-        }
-    };
 </script>
 </body>
 </html>
