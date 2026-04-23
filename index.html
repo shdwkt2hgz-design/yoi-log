@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>虚星宵 - Personal Log Viewer (HUD)</title>
     <style>
-
+        /* 1. フォント読み込み（必ず一番上） */
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-:root {
-    --bg-deep: #020617;
-        
+        /* 2. 変数設定 */
         :root {
             --bg-deep: #020617;
             --accent-cyan: #38bdf8;
@@ -23,105 +21,66 @@
             --window-bg: rgba(56, 189, 248, 0.05);
         }
 
-        /* --- 1. スクロールバーのカスタマイズ --- */
-/* バー全体の幅 */
-::-webkit-scrollbar {
-    width: 6px;
-}
-/* 背景（レール）部分 */
-::-webkit-scrollbar-track {
-    background: rgba(2, 6, 23, 0.5);
-}
-/* 動く棒の部分 */
-::-webkit-scrollbar-thumb {
-    background: var(--accent-cyan);
-    border-radius: 3px;
-    box-shadow: 0 0 10px var(--accent-glow);
-}
-
-/* --- 2. フォントの導入（Google Fonts） --- */
-/* 英数字にSF感のある 'Share Tech Mono' を適用 */
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-body {
-    /* フォント指定の先頭に追加 */
-    font-family: 'Share Tech Mono', -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-}
-
-    body {
-    margin: 0; padding: 0; 
-    color: var(--text-main);
-    /* 'Share Tech Mono' を一番左に持ってくる */
-    font-family: 'Share Tech Mono', monospace, -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-    min-height: 100vh;
-}
-
-/* --- 3. ログ表示のアニメーション --- */
-@keyframes logAppear {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-        filter: blur(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-    }
-}
-
-.log-window {
-    /* 既存のプロパティはそのままで、以下を追加 */
-    animation: logAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-        
-        /* --- 【重要】背景を完全に固定するレイヤー --- */
-        #fixed-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* コンテンツの背面に配置 */
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--bg-deep);
-            /* スマホでのカクつき防止 */
-            transform: translateZ(0);
-            transition: background-image 1.5s ease;
+        /* 3. スクロールバー */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(2, 6, 23, 0.5); }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--accent-cyan); 
+            border-radius: 3px; 
+            box-shadow: 0 0 10px var(--accent-glow); 
         }
 
+        /* 4. アニメーション定義 */
+        @keyframes logAppear {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        /* 5. ベースデザイン */
         body {
-            margin: 0;
-            padding: 0;
-            background-color: transparent; /* 背景はfixed-bgに任せる */
+            margin: 0; padding: 0; 
+            background-color: transparent;
             color: var(--text-main);
-            font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
+            /* フォントをShare Tech Monoに固定 */
+            font-family: 'Share Tech Mono', monospace, -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
             min-height: 100vh;
-            /* bodyでの背景設定は全て削除して競合を防ぐ */
+        }
+
+        #fixed-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; background-size: cover; background-position: center;
+            background-repeat: no-repeat; background-color: var(--bg-deep);
+            transform: translateZ(0); transition: background-image 1.5s ease;
         }
 
         .container { padding: 40px 20px 140px; max-width: 500px; margin: 0 auto; }
-        .header-title { text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; }
+        .header-title { 
+            text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; 
+            color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; 
+        }
 
+        /* 6. ログウィンドウ（アニメーション追加） */
         .log-window {
             position: relative; background: var(--window-bg); border: 1px solid rgba(56, 189, 248, 0.2);
             padding: 10px 15px; margin-bottom: 15px; backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
+            animation: logAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
         }
+        
+        /* 枠の角のデザイン */
         .log-window::before { content: ""; position: absolute; top: -1px; left: -1px; width: 15px; height: 15px; border-top: 2px solid var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
         .log-window::after { content: ""; position: absolute; bottom: -1px; right: -1px; width: 15px; height: 15px; border-bottom: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan); }
         
-        .log-meta { font-family: monospace; font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .log-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px; display: flex; justify-content: space-between; }
         .log-text { font-size: 13px; line-height: 1.6; word-wrap: break-word; min-height: 3em; color: var(--text-main); }
         .log-footer { margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
         
         .star-btn { background: none; border: none; color: #475569; font-size: 1.2rem; cursor: pointer; transition: color 0.3s; }
         .star-btn.active { color: var(--accent-gold); }
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
-        .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
+        .timestamp-top { font-family: 'Share Tech Mono', monospace; font-size: 10px; opacity: 0.5; }
 
+        /* 7. HUDシステム */
         .hud-system { position: fixed; bottom: 40px; right: 20px; z-index: 2000; text-align: right; }
         .fav-toggle-btn {
             display: inline-block; width: 40px; height: 40px; margin-bottom: 10px;
@@ -131,6 +90,7 @@ body {
             line-height: 40px; padding: 0;
         }
         .fav-toggle-btn.active { border-color: var(--accent-gold); color: var(--accent-gold); box-shadow: 0 0 15px var(--gold-glow); transform: scale(1.1); }
+        
         .mode-btn {
             width: 60px; height: 60px; border-radius: 50%;
             background: rgba(2, 6, 23, 0.9); border: 2px solid var(--accent-cyan);
@@ -139,7 +99,12 @@ body {
             display: flex; align-items: center; justify-content: center;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .current-mode-display { position: absolute; top: 68px; left: 50%; transform: translateX(-50%); font-family: monospace; font-size: 10px; color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); white-space: nowrap; opacity: 0.9; }
+        .current-mode-display { 
+            position: absolute; top: 68px; left: 50%; transform: translateX(-50%); 
+            font-family: 'Share Tech Mono', monospace; font-size: 10px; 
+            color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); 
+            white-space: nowrap; opacity: 0.9; 
+        }
     </style>
 </head>
 <body> 
@@ -266,13 +231,3 @@ body {
         setInterval(updateBackground, 60000);
 
         window.favLog = function(btn, logId) {
-            btn.classList.toggle('active');
-            let favs = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-            if (btn.classList.contains('active')) { if (!favs.includes(logId)) favs.push(logId); }
-            else { favs = favs.filter(id => id !== logId); }
-            localStorage.setItem('yoi_favs', JSON.stringify(favs));
-            if (isFavOnly) renderLogs();
-        };
-    </script>
-</body>
-</html>
