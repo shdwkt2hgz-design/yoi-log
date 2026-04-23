@@ -154,6 +154,13 @@
 
     <div class="container">
         <div class="header-title">Ryusei Yoi / Personal Log Viewer (HUD)</div>
+        <div id="user-info-panel" style="display:none; text-align: center; margin-bottom: 20px;">
+    <div style="font-size: 10px; opacity: 0.6; letter-spacing: 1px;">CONNECT ID</div>
+    <div id="uid-display" onclick="copyUID()" style="display: inline-block; padding: 8px 15px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--accent-cyan); color: var(--accent-cyan); font-family: 'Share Tech Mono'; font-size: 14px; cursor: pointer; border-radius: 4px; margin-top: 5px;">
+        IDを取得中...
+    </div>
+    <div id="copy-msg" style="font-size: 9px; color: var(--accent-gold); height: 12px; margin-top: 4px; opacity: 0;">COPIED!</div>
+</div>
         <div id="auth-section" class="log-window" style="text-align: center; padding: 30px 10px;">
             <div id="login-status">読み込み中...</div>
             <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Googleログイン</button>
@@ -179,7 +186,7 @@
         <button onclick="toggleArchive()" style="margin-top:10px; background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); width:100%; cursor:pointer; padding: 10px; font-family:'Share Tech Mono'; font-size:11px;">CLOSE</button>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
@@ -204,16 +211,35 @@
         let isFavOnly = false;
         const modes = ['ALL', '#思ったこと', '#聴いた曲', '#ゲーム'];
 
+        // ログイン状態の監視（統合版）
         onAuthStateChanged(auth, async (user) => {
+            const infoPanel = document.getElementById('user-info-panel');
+            const uidDisplay = document.getElementById('uid-display');
+            
             if (user) {
+                uidDisplay.innerText = user.uid;
+                infoPanel.style.display = "block";
                 document.getElementById('login-status').innerText = `観測中: ${user.displayName}`;
                 document.getElementById('login-btn').style.display = "none";
                 checkPermissionAndLoadLogs(user.uid);
             } else {
+                infoPanel.style.display = "none";
+                document.getElementById('login-status').innerText = "閲覧には認証が必要です";
                 document.getElementById('login-btn').style.display = "block";
             }
         });
 
+        // UIDコピー機能
+        window.copyUID = function() {
+            const uidText = document.getElementById('uid-display').innerText;
+            navigator.clipboard.writeText(uidText).then(() => {
+                const msg = document.getElementById('copy-msg');
+                msg.style.opacity = "1";
+                setTimeout(() => { msg.style.opacity = "0"; }, 2000);
+            });
+        };
+
+        // 背景画像のプリロード
         ['morning.jpg', 'noon.jpg', 'evening.jpg', 'night.jpg'].forEach(src => {
             const img = new Image(); img.src = src;
         });
@@ -247,10 +273,12 @@
                         renderLogs();
                     }
                 });
+            } else {
+                // ホワイトリストにない場合はローディングを消してメッセージ
+                hideLoading();
+                document.getElementById('login-status').innerText = "認証完了：権限を確認中...";
             }
         }
-
-        let isArchiveOpen = false;
 
         function renderLogs() {
             const container = document.getElementById('log-container');
@@ -274,9 +302,9 @@
 
         window.toggleArchive = function() {
             const panel = document.getElementById('archive-panel');
-            isArchiveOpen = !isArchiveOpen;
-            panel.style.right = isArchiveOpen ? "0px" : "-320px";
-            if(isArchiveOpen) generateArchiveList();
+            const isArchiveOpen = panel.style.right === "0px";
+            panel.style.right = isArchiveOpen ? "-320px" : "0px";
+            if(!isArchiveOpen) generateArchiveList();
         };
 
         function generateArchiveList() {
@@ -302,41 +330,33 @@
             listContainer.innerHTML = html;
         }
 
-window.jumpToDate = function(date) {
-    toggleArchive();
-    
-    const container = document.getElementById('log-container');
-    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-    
-    // === 修正ポイント：完全一致(===)ではなく部分一致(includes)にする ===
-    // これにより、秒数や微細な形式の違いがあっても拾えるようになります
-    const filtered = allLogs.filter(log => log.date.includes(date));
-    
-    if (filtered.length === 0) {
-        console.warn("No logs found for:", date);
-        return;
-    }
+        window.jumpToDate = function(date) {
+            window.toggleArchive();
+            const container = document.getElementById('log-container');
+            const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            const filtered = allLogs.filter(log => log.date.includes(date));
+            
+            if (filtered.length === 0) return;
 
-    container.innerHTML = `
-        <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
-            -- OBSERVING DATA: ${date} --
-        </div>
-    ` + filtered.map(log => `
-        <div class="log-window">
-            <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
-            <div class="log-text">${log.text}</div>
-            <div class="log-footer">
-                <span class="hashtags">${log.tags || ''}</span>
-                <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
-            </div>
-        </div>
-    `).join('');
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+            container.innerHTML = `
+                <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
+                    -- OBSERVING DATA: ${date} --
+                </div>
+            ` + filtered.map(log => `
+                <div class="log-window">
+                    <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
+                    <div class="log-text">${log.text}</div>
+                    <div class="log-footer">
+                        <span class="hashtags">${log.tags || ''}</span>
+                        <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+                    </div>
+                </div>
+            `).join('');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
         window.resetToAll = function() {
-            toggleArchive();
+            window.toggleArchive();
             currentFilter = 'ALL';
             document.getElementById('mode-display').innerText = `MODE: ALL`;
             renderLogs();
