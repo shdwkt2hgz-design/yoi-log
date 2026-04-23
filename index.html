@@ -39,7 +39,7 @@
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
 
-        /* --- 展開式レンズ：デザイン（四角形＆配置調整） --- */
+        /* --- 展開式レンズ：デザイン（四角形＆文字固定） --- */
         .lens-system { position: fixed; bottom: 50px; right: 30px; z-index: 2000; }
         
         .main-lens {
@@ -48,11 +48,12 @@
             color: var(--accent-cyan); cursor: pointer; z-index: 2001; position: relative;
             box-shadow: 0 0 20px var(--accent-glow); backdrop-filter: blur(8px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s, color 0.4s;
         }
+
+        /* ボタンが回転しても中身（衛星）は回るが、ボタン外のMODE表示は回らないようにする */
         .lens-system.active .main-lens { transform: rotate(135deg); border-color: #ef4444; color: #ef4444; }
 
-        /* ジャンル名ボタン：文字に合わせた四角 */
         .sub-mode {
             position: absolute; bottom: 10px; right: 10px;
             padding: 5px 14px; border-radius: 2px;
@@ -64,17 +65,25 @@
         }
         .lens-system.active .sub-mode { opacity: 1; pointer-events: auto; }
         
-        /* 四角タグの展開位置（階段状に並べる） */
+        /* 展開位置調整 */
         .lens-system.active .sub-0 { transform: translate(-80px, 20px); }    /* ALL */
         .lens-system.active .sub-1 { transform: translate(-85px, -20px); }   /* 思考 */
         .lens-system.active .sub-2 { transform: translate(-80px, -60px); }   /* 音楽 */
         .lens-system.active .sub-3 { transform: translate(-65px, -100px); }  /* GAME */
 
-        /* 「MODE:」をLENSボタンのすぐ下に固定 */
+        /* 「MODE:」をボタンの外に配置して回転を防ぐ */
         .current-mode-display {
-            position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
-            font-family: monospace; font-size: 10px; color: var(--accent-cyan);
-            text-shadow: 0 0 8px var(--accent-glow); white-space: nowrap; opacity: 0.9;
+            position: absolute;
+            top: 78px; /* 丸ボタンの下 */
+            left: 50%;
+            transform: translateX(-50%); /* 中央揃え */
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px var(--accent-glow);
+            white-space: nowrap;
+            opacity: 0.9;
+            pointer-events: none; /* クリックの邪魔をしない */
         }
 
         .flying-star { position: fixed; z-index: 9999; color: #fbbf24; font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
@@ -99,8 +108,8 @@
         <button class="main-lens" onclick="document.getElementById('lens-ui').classList.toggle('active')">
             <div style="font-size: 20px;">🛰️</div>
             <div style="font-size: 8px; font-weight: bold;">LENS</div>
-            <div class="current-mode-display" id="mode-display">MODE: ALL</div>
         </button>
+        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
     </div>
 
     <script type="module">
