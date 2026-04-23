@@ -180,7 +180,6 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    // --- 1. Firebase Config ---
     const firebaseConfig = {
         databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
         apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
@@ -196,7 +195,6 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // --- 3. ログイン状態の監視 ---
     onAuthStateChanged(auth, async (user) => {
         const loginStatus = document.getElementById('login-status');
         const loginBtn = document.getElementById('login-btn');
@@ -226,7 +224,6 @@
         });
     };
 
-    // --- 4. 許可リスト確認＆ログ取得 ---
     async function checkPermissionAndLoadLogs(uid) {
         const logContainer = document.getElementById('log-container');
         const whitelistRef = ref(db, 'whitelist/' + uid);
@@ -250,7 +247,6 @@
         }
     }
 
-    // --- 5. 表示用関数 ---
     function renderLogs(logData) {
         const container = document.getElementById('log-container');
         const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
@@ -272,44 +268,35 @@
         }).join('');
     }
 
-    // --- 背景更新関数の修正版 ---
+    // --- 背景更新関数の修正版（画像なしVer.） ---
     function updateBackground() {
-    const hour = new Date().getHours();
-    const body = document.body;
+        const hour = new Date().getHours();
+        const body = document.body;
+        body.classList.remove('morning', 'day', 'evening', 'night');
 
-    // 一旦すべてのクラスを外す
-    body.classList.remove('morning', 'day', 'evening', 'night');
-
-    // 時間帯判定：画像は指定せず、クラス（グラデーション）だけを付ける
-    if (hour >= 6 && hour < 12) {
-        body.classList.add("morning");
-    } else if (hour >= 12 && hour < 17) {
-        body.classList.add("day");
-    } else if (hour >= 17 && hour < 20) {
-        body.classList.add("evening");
-    } else {
-        body.classList.add("night");
+        if (hour >= 6 && hour < 12) {
+            body.classList.add("morning");
+        } else if (hour >= 12 && hour < 17) {
+            body.classList.add("day");
+        } else if (hour >= 17 && hour < 20) {
+            body.classList.add("evening");
+        } else {
+            body.classList.add("night");
+        }
+        // 画像はまだないので、背景画像をクリアしてグラデーションのみにする
+        body.style.backgroundImage = "none"; 
     }
 
-    // 画像の処理は、実際に画像をアップロードするまで消しておくか、
-    // 以下のように「何もしない」設定にする
-    body.style.backgroundImage = "none"; 
-    }
-
-    // 実行
     updateBackground();
     setInterval(updateBackground, 60000);
 
-    // お気に入り処理とアニメーション
     window.favLog = function(btn, logId) {
         const isActivating = !btn.classList.contains('active');
         btn.classList.toggle('active');
-
         let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
         
         if (isActivating) {
             if (!favorites.includes(logId)) favorites.push(logId);
-            
             const rect = btn.getBoundingClientRect();
             const star = document.createElement('div');
             star.className = 'flying-star';
@@ -328,13 +315,13 @@
                     star.style.transform = 'scale(0.2) rotate(720deg)';
                 }, 20);
             });
-
             setTimeout(() => star.remove(), 1000);
         } else {
             favorites = favorites.filter(id => id !== logId);
         }
         localStorage.setItem('yoi_favs', JSON.stringify(favorites));
     };
+
 </script>
 
 </body>
