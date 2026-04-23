@@ -8,7 +8,11 @@
         :root {
             --bg-deep: #020617;
             --accent-cyan: #38bdf8;
+            /* 展開時の新しいアクセントカラー（暗めの紫色） */
+            --accent-purple: #a855f7; 
             --accent-glow: rgba(56, 189, 248, 0.3);
+            /* 紫色のグロー効果 */
+            --purple-glow: rgba(168, 85, 247, 0.4); 
             --text-main: #f8fafc;
             --window-bg: rgba(56, 189, 248, 0.05);
         }
@@ -39,51 +43,71 @@
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
 
-        /* --- 展開式レンズ：デザイン（四角形＆文字固定） --- */
+        /* --- 展開式レンズ：デザイン（文字削除＆色変更） --- */
         .lens-system { position: fixed; bottom: 50px; right: 30px; z-index: 2000; }
         
         .main-lens {
-            width: 70px; height: 70px; border-radius: 50%;
+            /* 文字を消すので、少し小さくしてバランスを取る（70px -> 60px） */
+            width: 60px; height: 60px; border-radius: 50%;
             background: rgba(2, 6, 23, 0.9); border: 2px solid var(--accent-cyan);
             color: var(--accent-cyan); cursor: pointer; z-index: 2001; position: relative;
             box-shadow: 0 0 20px var(--accent-glow); backdrop-filter: blur(8px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s, color 0.4s;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s, color 0.4s, box-shadow 0.4s;
         }
 
-        /* ボタンが回転しても中身（衛星）は回るが、ボタン外のMODE表示は回らないようにする */
-        .lens-system.active .main-lens { transform: rotate(135deg); border-color: #ef4444; color: #ef4444; }
+        /* ★変更点：展開時（アクティブ）の色をシアンから紫色へ */
+        .lens-system.active .main-lens { 
+            transform: rotate(135deg); /* 回転は残す */
+            border-color: var(--accent-purple); /* 縁を紫色に */
+            color: var(--accent-purple); /* 絵文字の影などに影響 */
+            box-shadow: 0 0 25px var(--purple-glow); /* グローも紫色に */
+        }
 
         .sub-mode {
-            position: absolute; bottom: 10px; right: 10px;
+            position: absolute; bottom: 5px; right: 5px; /* main-lensが小さくなった分、初期位置を調整 */
             padding: 5px 14px; border-radius: 2px;
             background: rgba(2, 6, 23, 0.9); border: 1px solid var(--accent-cyan);
             color: var(--accent-cyan); font-size: 11px; font-weight: bold;
-            cursor: pointer; opacity: 0; transition: all 0.3s ease;
+            cursor: pointer; opacity: 0; transition: all 0.3s ease, border-color 0.4s, color 0.4s;
             pointer-events: none; backdrop-filter: blur(4px); white-space: nowrap;
             box-shadow: 0 0 10px var(--accent-glow);
         }
-        .lens-system.active .sub-mode { opacity: 1; pointer-events: auto; }
         
-        /* 展開位置調整 */
-        .lens-system.active .sub-0 { transform: translate(-80px, 20px); }    /* ALL */
-        .lens-system.active .sub-1 { transform: translate(-85px, -20px); }   /* 思考 */
-        .lens-system.active .sub-2 { transform: translate(-80px, -60px); }   /* 音楽 */
-        .lens-system.active .sub-3 { transform: translate(-65px, -100px); }  /* GAME */
+        /* ★変更点：展開時はサブボタンも紫色に馴染ませる */
+        .lens-system.active .sub-mode { 
+            opacity: 1; pointer-events: auto; 
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+            box-shadow: 0 0 15px var(--purple-glow);
+        }
+        
+        /* 展開位置調整（扇状、少し内側に） */
+        .lens-system.active .sub-0 { transform: translate(-75px, 15px); }    /* ALL */
+        .lens-system.active .sub-1 { transform: translate(-80px, -25px); }   /* 思考 */
+        .lens-system.active .sub-2 { transform: translate(-75px, -65px); }   /* 音楽 */
+        .lens-system.active .sub-3 { transform: translate(-60px, -105px); }  /* GAME */
 
-        /* 「MODE:」をボタンの外に配置して回転を防ぐ */
+        /* 「MODE:」表示の調整 */
         .current-mode-display {
             position: absolute;
-            top: 78px; /* 丸ボタンの下 */
+            top: 68px; /* 丸ボタン(60px)の下 */
             left: 50%;
-            transform: translateX(-50%); /* 中央揃え */
+            transform: translateX(-50%);
             font-family: monospace;
             font-size: 10px;
             color: var(--accent-cyan);
             text-shadow: 0 0 8px var(--accent-glow);
             white-space: nowrap;
             opacity: 0.9;
-            pointer-events: none; /* クリックの邪魔をしない */
+            pointer-events: none;
+            transition: color 0.4s;
+        }
+        
+        /* ★変更点：展開時はMODE表示も紫色に */
+        .lens-system.active .current-mode-display {
+            color: var(--accent-purple);
+            text-shadow: 0 0 10px var(--purple-glow);
         }
 
         .flying-star { position: fixed; z-index: 9999; color: #fbbf24; font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
@@ -106,8 +130,7 @@
         <button class="sub-mode sub-3" onclick="setMode('#ゲーム')">GAME</button>
         
         <button class="main-lens" onclick="document.getElementById('lens-ui').classList.toggle('active')">
-            <div style="font-size: 20px;">🛰️</div>
-            <div style="font-size: 8px; font-weight: bold;">LENS</div>
+            <div style="font-size: 24px;">🛰️</div>
         </button>
         <div class="current-mode-display" id="mode-display">MODE: ALL</div>
     </div>
