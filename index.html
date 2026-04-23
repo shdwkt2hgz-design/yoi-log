@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>虚星宵 - Personal Log Viewer (HUD)</title>
     <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+    --bg-deep: #020617;
+        
         :root {
             --bg-deep: #020617;
             --accent-cyan: #38bdf8;
@@ -40,6 +46,14 @@
 body {
     /* フォント指定の先頭に追加 */
     font-family: 'Share Tech Mono', -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
+}
+
+    body {
+    margin: 0; padding: 0; 
+    color: var(--text-main);
+    /* 'Share Tech Mono' を一番左に持ってくる */
+    font-family: 'Share Tech Mono', monospace, -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
+    min-height: 100vh;
 }
 
 /* --- 3. ログ表示のアニメーション --- */
