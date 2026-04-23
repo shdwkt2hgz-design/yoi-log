@@ -14,82 +14,170 @@
         }
 
         body {
-            margin: 0; padding: 0; background-color: var(--bg-deep); color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             font-family: -apple-system, "Hiragino Sans", "Meiryo", sans-serif;
-            min-height: 100vh; background-size: cover; background-position: center;
-            background-attachment: fixed; background-repeat: no-repeat;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
             transition: background 1.5s ease;
         }
 
-        .container { padding: 40px 20px 120px; max-width: 500px; margin: 0 auto; }
-        .header-title { text-align: center; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent-cyan); margin-bottom: 40px; text-transform: uppercase; }
+        /* --- 時間帯別の背景設定（画像がない時の予備） --- */
+        body.morning { background: radial-gradient(circle at top, #083344, #020617); }
+        body.day     { background: radial-gradient(circle at center, #0c4a6e, #020617); }
+        body.evening { background: radial-gradient(circle at bottom, #1e1b4b, #020617); }
+        body.night   { background: radial-gradient(circle at center, #020617, #000000); }
+
+        .container {
+            padding: 40px 20px 140px; /* 下部に余白を確保 */
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 0.3em;
+            color: var(--accent-cyan);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
 
         /* --- ログウィンドウ --- */
         .log-window {
-            position: relative; background: var(--window-bg); border: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 10px 15px; margin-bottom: 15px; backdrop-filter: blur(4px);
+            position: relative;
+            background: var(--window-bg);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(4px);
         }
-        .log-window::before { content: ""; position: absolute; top: -1px; left: -1px; width: 15px; height: 15px; border-top: 2px solid var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
-        .log-window::after { content: ""; position: absolute; bottom: -1px; right: -1px; width: 15px; height: 15px; border-bottom: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan); }
+
+        .log-window::before {
+            content: ""; position: absolute; top: -1px; left: -1px;
+            width: 15px; height: 15px;
+            border-top: 2px solid var(--accent-cyan); border-left: 2px solid var(--accent-cyan);
+        }
+        .log-window::after {
+            content: ""; position: absolute; bottom: -1px; right: -1px;
+            width: 15px; height: 15px;
+            border-bottom: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan);
+        }
+
         .log-meta { font-family: monospace; font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .log-text { font-size: 13px; line-height: 1.6; word-wrap: break-word; }
+        .log-text { font-size: 13px; line-height: 1.6; word-wrap: break-word; min-height: 3em; }
         .log-footer { margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .star-btn { background: none; border: none; color: #475569; font-size: 1.2rem; cursor: pointer; transition: color 0.3s; }
+        
+        .star-btn {
+            background: none; border: none; color: #475569; font-size: 1.2rem; cursor: pointer;
+            transition: color 0.3s; padding: 0; display: flex; align-items: center;
+        }
         .star-btn.active { color: #fbbf24; }
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: monospace; font-size: 10px; opacity: 0.5; }
 
         /* --- 展開式レンズセレクター --- */
-        .lens-system { position: fixed; bottom: 40px; right: 30px; z-index: 2000; }
+        .lens-system {
+            position: fixed;
+            bottom: 40px;
+            right: 30px;
+            z-index: 2000;
+        }
         
         .main-lens {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: rgba(2, 6, 23, 0.9); border: 2px solid var(--accent-cyan);
-            color: var(--accent-cyan); cursor: pointer; z-index: 2001; position: relative;
-            box-shadow: 0 0 20px var(--accent-glow); backdrop-filter: blur(8px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, 0.9);
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            cursor: pointer;
+            z-index: 2001;
+            position: relative;
+            box-shadow: 0 0 20px var(--accent-glow);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .lens-system.active .main-lens { transform: rotate(135deg); border-color: #ef4444; color: #ef4444; }
 
-        /* 周りに展開されるボタン */
-        .sub-mode {
-            position: absolute; bottom: 10px; right: 10px; width: 50px; height: 50px;
-            border-radius: 50%; background: rgba(56, 189, 248, 0.1);
-            border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
-            font-size: 10px; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; opacity: 0; transition: all 0.4s ease;
-            pointer-events: none; backdrop-filter: blur(4px);
+        .lens-system.active .main-lens {
+            transform: rotate(135deg);
+            border-color: #ef4444;
+            color: #ef4444;
         }
-        /* 展開位置（扇状） */
+
+        .sub-mode {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, 0.9);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
         .lens-system.active .sub-mode { opacity: 1; pointer-events: auto; }
+        
+        /* 扇状の展開位置調整 */
         .lens-system.active .sub-0 { transform: translate(-80px, 0); }      /* ALL */
         .lens-system.active .sub-1 { transform: translate(-70px, -70px); }  /* 思考 */
         .lens-system.active .sub-2 { transform: translate(0, -80px); }      /* 音楽 */
-        .lens-system.active .sub-3 { transform: translate(60px, -60px); }   /* ゲーム(右上がり) */
-        .lens-system.active .sub-4 { transform: translate(-100px, -110px); } /* FAV */
+        .lens-system.active .sub-3 { transform: translate(40px, -110px); }  /* GAME */
 
         .current-mode-display {
-            position: fixed; bottom: 120px; right: 30px; font-family: monospace;
-            font-size: 12px; color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-glow);
-            opacity: 0.8; pointer-events: none;
+            position: fixed;
+            bottom: 130px;
+            right: 35px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px var(--accent-glow);
+            opacity: 0.9;
+            pointer-events: none;
         }
 
         .flying-star { position: fixed; z-index: 9999; color: #fbbf24; font-size: 1.5rem; pointer-events: none; transition: all 0.8s; }
     </style>
 </head>
-<body class="night">
+<body class="night"> 
     <div class="container">
         <div class="header-title">Ryusei Yoi / Personal Log Viewer</div>
+
         <div id="auth-section" class="log-window" style="text-align: center; padding: 30px 10px;">
             <div id="login-status">読み込み中...</div>
-            <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Googleログイン</button>
-            <div id="uid-display" style="display:none; margin-top: 20px;"><code id="user-uid" style="font-size: 11px; color: var(--accent-cyan);"></code></div>
+            <button id="login-btn" style="display:none; margin: 20px auto; padding: 12px 24px; background: var(--accent-cyan); color: var(--bg-deep); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">
+                Googleアカウントでログイン
+            </button>
+            <div id="uid-display" style="display:none; margin-top: 20px;">
+                <code id="user-uid" style="background: rgba(255,255,255,0.1); padding: 8px; display: block; font-size: 11px; word-break: break-all; border: 1px solid rgba(56, 189, 248, 0.3); color: var(--accent-cyan);"></code>
+            </div>
         </div>
+
         <div id="log-container" style="display:none;"></div>
     </div>
 
-        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
+    <div class="current-mode-display" id="mode-display">MODE: ALL</div>
     <div class="lens-system" id="lens-ui" style="display:none;">
         <button class="sub-mode sub-0" onclick="setMode('ALL')">ALL</button>
         <button class="sub-mode sub-1" onclick="setMode('#思ったこと')">思考</button>
@@ -102,51 +190,147 @@
         </button>
     </div>
 
-    <style>
-        /* 展開位置の微調整（画面内に収まるように） */
-        .lens-system.active .sub-0 { transform: translate(-70px, 0); }      /* ALL (左) */
-        .lens-system.active .sub-1 { transform: translate(-60px, -60px); }  /* 思考 (左上) */
-        .lens-system.active .sub-2 { transform: translate(0, -70px); }      /* 音楽 (上) */
-        .lens-system.active .sub-3 { transform: translate(-15px, -125px); } /* GAME (さらに上) */
-
-        /* ボタンの視認性を上げる（背景を少し濃いシアンに） */
-        .sub-mode {
-            background: rgba(2, 6, 23, 0.9) !important;
-            border: 1px solid var(--accent-cyan) !important;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-    </style>
-
     <script type="module">
-        /* --- ここからJavaScriptの修正 --- */
-        // モードから 'FAV' を削除
-        const modes = ['ALL', '#思ったこと', '#聴いた曲', '#ゲーム']; 
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-        // 既存のスクリプト部分は維持しつつ、renderLogs内のFAV判定を削除
+        const firebaseConfig = {
+            databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
+            apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
+            authDomain: "yoi-log.firebaseapp.com",
+            projectId: "yoi-log",
+            storageBucket: "yoi-log.firebasestorage.app",
+            messagingSenderId: "248106619066",
+            appId: "1:248106619066:web:12aab65565d7d7292df283",
+            measurementId: "G-W7Y12M3YMB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let allLogs = []; 
+        let currentFilter = 'ALL';
+
+        onAuthStateChanged(auth, async (user) => {
+            const loginStatus = document.getElementById('login-status');
+            const loginBtn = document.getElementById('login-btn');
+            const uidDisplay = document.getElementById('uid-display');
+            const userUid = document.getElementById('user-uid');
+            const logContainer = document.getElementById('log-container');
+            const lensUI = document.getElementById('lens-ui');
+
+            if (user) {
+                loginStatus.innerText = `観測中: ${user.displayName}`;
+                loginBtn.style.display = "none";
+                uidDisplay.style.display = "block";
+                userUid.innerText = user.uid;
+                checkPermissionAndLoadLogs(user.uid);
+            } else {
+                loginStatus.innerText = "Googleログインが必要です";
+                loginBtn.style.display = "block";
+                uidDisplay.style.display = "none";
+                logContainer.style.display = "none";
+                lensUI.style.display = "none";
+            }
+        });
+
+        document.getElementById('login-btn').onclick = () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => console.error(err));
+        };
+
+        async function checkPermissionAndLoadLogs(uid) {
+            const whitelistRef = ref(db, 'whitelist/' + uid);
+            try {
+                const snapshot = await get(whitelistRef);
+                if (snapshot.exists() && snapshot.val() === true) {
+                    document.getElementById('auth-section').style.display = "none";
+                    document.getElementById('log-container').style.display = "block";
+                    document.getElementById('lens-ui').style.display = "block";
+                    
+                    const logsRef = ref(db, 'logs');
+                    onValue(logsRef, (logSnapshot) => {
+                        const data = logSnapshot.val();
+                        if (data) {
+                            allLogs = Object.keys(data).map(key => data[key]);
+                            allLogs.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
+                            renderLogs();
+                        }
+                    });
+                }
+            } catch (error) { console.error(error); }
+        }
+
         function renderLogs() {
             const container = document.getElementById('log-container');
-            // お気に入りデータは読み込むが、絞り込みには使わない
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
             
-            let filtered = currentFilter === 'ALL' 
+            let filteredData = currentFilter === 'ALL' 
                 ? allLogs 
                 : allLogs.filter(l => l.tags && l.tags.includes(currentFilter));
 
-            container.innerHTML = filtered.map(log => `
-                <div class="log-window">
-                    <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
-                    <div class="log-text">${log.text}</div>
-                    <div class="log-footer">
-                        <span class="hashtags">${log.tags || ''}</span>
-                        <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+            container.innerHTML = filteredData.map((log, index) => {
+                const isFav = favorites.includes(log.date);
+                return `
+                    <div class="log-window">
+                        <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
+                        <div class="log-text">${log.text}</div>
+                        <div class="log-footer">
+                            <span class="hashtags">${log.tags || ''}</span>
+                            <button class="star-btn ${isFav ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        /* --- その他の背景更新などは前のコードのままでOKです --- */
-        // (省略) updateBackground, favLog, setMode などの関数をそのまま使ってください
-    </script>
+        window.setMode = function(mode) {
+            currentFilter = mode;
+            document.getElementById('mode-display').innerText = `MODE: ${mode}`;
+            document.getElementById('lens-ui').classList.remove('active');
+            renderLogs();
+        };
 
+        function updateBackground() {
+            const hour = new Date().getHours();
+            const body = document.body;
+            let bgImage = (hour >= 6 && hour < 12) ? "morning.jpg" : 
+                          (hour >= 12 && hour < 17) ? "noon.jpg" : 
+                          (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
+            body.style.backgroundImage = `url('${bgImage}')`;
+            body.style.backgroundAttachment = "fixed";
+        }
+        updateBackground();
+        setInterval(updateBackground, 60000);
+
+        window.favLog = function(btn, logId) {
+            const isActivating = !btn.classList.contains('active');
+            btn.classList.toggle('active');
+            let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            if (isActivating) {
+                if (!favorites.includes(logId)) favorites.push(logId);
+                const rect = btn.getBoundingClientRect();
+                const star = document.createElement('div');
+                star.className = 'flying-star';
+                star.innerText = '★';
+                star.style.left = rect.left + 'px';
+                star.style.top = rect.top + 'px';
+                document.body.appendChild(star);
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        star.style.left = (window.innerWidth - 40) + 'px';
+                        star.style.top = '20px';
+                        star.style.opacity = '0';
+                    }, 20);
+                });
+                setTimeout(() => star.remove(), 1000);
+            } else {
+                favorites = favorites.filter(id => id !== logId);
+            }
+            localStorage.setItem('yoi_favs', JSON.stringify(favorites));
+        };
+    </script>
 </body>
 </html>
