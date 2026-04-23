@@ -89,13 +89,12 @@
         <div id="log-container" style="display:none;"></div>
     </div>
 
-    <div class="current-mode-display" id="mode-display">MODE: ALL</div>
+        <div class="current-mode-display" id="mode-display">MODE: ALL</div>
     <div class="lens-system" id="lens-ui" style="display:none;">
         <button class="sub-mode sub-0" onclick="setMode('ALL')">ALL</button>
         <button class="sub-mode sub-1" onclick="setMode('#思ったこと')">思考</button>
         <button class="sub-mode sub-2" onclick="setMode('#聴いた曲')">音楽</button>
         <button class="sub-mode sub-3" onclick="setMode('#ゲーム')">GAME</button>
-        <button class="sub-mode sub-4" onclick="setMode('FAV')">★</button>
         
         <button class="main-lens" onclick="document.getElementById('lens-ui').classList.toggle('active')">
             <div style="font-size: 20px;">🛰️</div>
@@ -103,67 +102,35 @@
         </button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+    <style>
+        /* 展開位置の微調整（画面内に収まるように） */
+        .lens-system.active .sub-0 { transform: translate(-70px, 0); }      /* ALL (左) */
+        .lens-system.active .sub-1 { transform: translate(-60px, -60px); }  /* 思考 (左上) */
+        .lens-system.active .sub-2 { transform: translate(0, -70px); }      /* 音楽 (上) */
+        .lens-system.active .sub-3 { transform: translate(-15px, -125px); } /* GAME (さらに上) */
 
-        const firebaseConfig = {
-            databaseURL: "https://yoi-log-default-rtdb.firebaseio.com", 
-            apiKey: "AIzaSyBgUBe80kRzgyqbmQgWQaP070RzfWw3NDQ",
-            authDomain: "yoi-log.firebaseapp.com",
-            projectId: "yoi-log",
-            storageBucket: "yoi-log.firebasestorage.app",
-            messagingSenderId: "248106619066",
-            appId: "1:248106619066:web:12aab65565d7d7292df283",
-            measurementId: "G-W7Y12M3YMB"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-
-        let allLogs = [];
-        let currentFilter = 'ALL';
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById('login-status').innerText = `観測中: ${user.displayName}`;
-                document.getElementById('login-btn').style.display = "none";
-                document.getElementById('uid-display').style.display = "block";
-                document.getElementById('user-uid').innerText = user.uid;
-                checkPermissionAndLoadLogs(user.uid);
-            } else {
-                document.getElementById('login-btn').style.display = "block";
-            }
-        });
-
-        document.getElementById('login-btn').onclick = () => {
-            signInWithPopup(auth, new GoogleAuthProvider()).catch(err => console.error(err));
-        };
-
-        async function checkPermissionAndLoadLogs(uid) {
-            const snapshot = await get(ref(db, 'whitelist/' + uid));
-            if (snapshot.exists() && snapshot.val() === true) {
-                document.getElementById('auth-section').style.display = "none";
-                document.getElementById('log-container').style.display = "block";
-                document.getElementById('lens-ui').style.display = "block";
-                onValue(ref(db, 'logs'), (logSnapshot) => {
-                    const data = logSnapshot.val();
-                    if (data) {
-                        allLogs = Object.keys(data).map(key => data[key]);
-                        allLogs.sort((a, b) => new Date(b.date.replace(/\./g, '/')) - new Date(a.date.replace(/\./g, '/')));
-                        renderLogs();
-                    }
-                });
-            }
+        /* ボタンの視認性を上げる（背景を少し濃いシアンに） */
+        .sub-mode {
+            background: rgba(2, 6, 23, 0.9) !important;
+            border: 1px solid var(--accent-cyan) !important;
+            box-shadow: 0 0 10px var(--accent-glow);
         }
+    </style>
 
+    <script type="module">
+        /* --- ここからJavaScriptの修正 --- */
+        // モードから 'FAV' を削除
+        const modes = ['ALL', '#思ったこと', '#聴いた曲', '#ゲーム']; 
+
+        // 既存のスクリプト部分は維持しつつ、renderLogs内のFAV判定を削除
         function renderLogs() {
             const container = document.getElementById('log-container');
+            // お気に入りデータは読み込むが、絞り込みには使わない
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-            let filtered = currentFilter === 'FAV' ? allLogs.filter(l => favorites.includes(l.date)) :
-                           currentFilter === 'ALL' ? allLogs : allLogs.filter(l => l.tags && l.tags.includes(currentFilter));
+            
+            let filtered = currentFilter === 'ALL' 
+                ? allLogs 
+                : allLogs.filter(l => l.tags && l.tags.includes(currentFilter));
 
             container.innerHTML = filtered.map(log => `
                 <div class="log-window">
@@ -177,34 +144,9 @@
             `).join('');
         }
 
-        window.setMode = function(mode) {
-            currentFilter = mode;
-            document.getElementById('mode-display').innerText = `MODE: ${mode}`;
-            document.getElementById('lens-ui').classList.remove('active');
-            renderLogs();
-        };
-
-        // --- 背景管理 ---
-        function updateBackground() {
-            const hour = new Date().getHours();
-            let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : (hour >= 12 && hour < 17) ? "noon.jpg" : (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
-            document.body.style.backgroundImage = `url('${bg}')`;
-            document.body.style.backgroundAttachment = "fixed";
-        }
-        updateBackground();
-        setInterval(updateBackground, 60000);
-
-        window.favLog = function(btn, logId) {
-            btn.classList.toggle('active');
-            let favs = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-            if (btn.classList.contains('active')) {
-                favs.push(logId);
-            } else {
-                favs = favs.filter(id => id !== logId);
-            }
-            localStorage.setItem('yoi_favs', JSON.stringify(favs));
-            if (currentFilter === 'FAV') renderLogs();
-        };
+        /* --- その他の背景更新などは前のコードのままでOKです --- */
+        // (省略) updateBackground, favLog, setMode などの関数をそのまま使ってください
     </script>
+
 </body>
 </html>
