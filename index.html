@@ -292,7 +292,9 @@
 
         // ここが重要！画像を表示させる命令に戻します
         body.style.backgroundImage = `url('${bgImage}')`;
+        body.style.backgroundAttachment = "fixed";
     }
+
 
     updateBackground();
     setInterval(updateBackground, 60000);
