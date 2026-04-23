@@ -303,33 +303,37 @@
         }
 
 window.jumpToDate = function(date) {
-            toggleArchive();
-            
-            // HUDのモード表示には一切触れません（宵さんの美学を守るため！）
-            
-            const container = document.getElementById('log-container');
-            const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
-            const filtered = allLogs.filter(log => log.date === date);
-            
-            if (filtered.length === 0) return;
+    toggleArchive();
+    
+    const container = document.getElementById('log-container');
+    const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+    
+    // === 修正ポイント：完全一致(===)ではなく部分一致(includes)にする ===
+    // これにより、秒数や微細な形式の違いがあっても拾えるようになります
+    const filtered = allLogs.filter(log => log.date.includes(date));
+    
+    if (filtered.length === 0) {
+        console.warn("No logs found for:", date);
+        return;
+    }
 
-            container.innerHTML = `
-                <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
-                    -- OBSERVING DATA: ${date} --
-                </div>
-            ` + filtered.map(log => `
-                <div class="log-window">
-                    <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
-                    <div class="log-text">${log.text}</div>
-                    <div class="log-footer">
-                        <span class="hashtags">${log.tags || ''}</span>
-                        <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
-                    </div>
-                </div>
-            `).join('');
+    container.innerHTML = `
+        <div style="color:var(--accent-cyan); font-size:10px; margin-bottom:15px; text-align:center; font-family:'Share Tech Mono'; letter-spacing:2px;">
+            -- OBSERVING DATA: ${date} --
+        </div>
+    ` + filtered.map(log => `
+        <div class="log-window">
+            <div class="log-meta"><span class="timestamp-top">${log.date}</span></div>
+            <div class="log-text">${log.text}</div>
+            <div class="log-footer">
+                <span class="hashtags">${log.tags || ''}</span>
+                <button class="star-btn ${favorites.includes(log.date) ? 'active' : ''}" onclick="favLog(this, '${log.date}')">★</button>
+            </div>
+        </div>
+    `).join('');
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
         window.resetToAll = function() {
             toggleArchive();
