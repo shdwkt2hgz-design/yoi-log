@@ -263,11 +263,10 @@
     // --- 5. 修正版：表示用関数 ---
 function renderLogs(logData) {
     const container = document.getElementById('log-container');
-    // 保存されているお気に入りリストを取得
     const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
 
     container.innerHTML = logData.map((log, index) => {
-        const isFav = favorites.includes(log.date); // 日時をID代わりに使用
+        const isFav = favorites.includes(log.date);
         return `
             <div class="log-window" id="log-${index}">
                 <div class="log-meta">
@@ -316,13 +315,13 @@ function updateBackground() {
 updateBackground();
 setInterval(updateBackground, 60000);
 
-// お気に入り処理とアニメーション
+// お気に入り処理とアニメーション（ここをスッキリ統合！）
 window.favLog = function(btn, logId) {
     const isActivating = !btn.classList.contains('active');
     btn.classList.toggle('active');
 
-    // お気に入りリストの更新
     let favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+    
     if (isActivating) {
         if (!favorites.includes(logId)) favorites.push(logId);
         
@@ -331,27 +330,28 @@ window.favLog = function(btn, logId) {
         const star = document.createElement('div');
         star.className = 'flying-star';
         star.innerText = '★';
+        star.style.position = 'fixed';
         star.style.left = rect.left + 'px';
         star.style.top = rect.top + 'px';
+        star.style.opacity = '1';
         document.body.appendChild(star);
 
-        // 0.1秒後に右上へ飛ばす
-        setTimeout(() => {
-            star.style.left = (window.innerWidth - 50) + 'px';
-            star.style.top = '20px';
-            star.style.opacity = '0';
-            star.style.transform = 'scale(0.5) rotate(360deg)';
-        }, 50);
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                star.style.left = (window.innerWidth - 40) + 'px';
+                star.style.top = '20px';
+                star.style.opacity = '0';
+                star.style.transform = 'scale(0.2) rotate(720deg)';
+            }, 20);
+        });
 
-        // アニメーションが終わったら要素を消す
-        setTimeout(() => star.remove(), 800);
+        setTimeout(() => star.remove(), 1000);
 
     } else {
         favorites = favorites.filter(id => id !== logId);
     }
     localStorage.setItem('yoi_favs', JSON.stringify(favorites));
 };
-
 </script>
 
 </body>
