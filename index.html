@@ -2,7 +2,9 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>虚星宵 - Personal Log Viewer (HUD)</title>
     <style>
         /* 1. フォント読み込み */
@@ -33,14 +35,23 @@
             to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        body {
-            margin: 0; padding: 0; 
-            background-color: transparent;
+body {
+            margin: 0; 
+            padding: 0; 
+            background-color: #000; /* 背景を黒に固定して突き抜けを目立たなくする */
             color: var(--text-main);
             font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-            min-height: 100vh;
+            
+            /* ここを修正 */
+            height: 100dvh; 
+            width: 100vw;
+            overflow: hidden; /* 画面全体の余計なスクロールを禁止する */
+            
+            /* iPhoneのノッチや下部バーの余白を自動計算 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            box-sizing: border-box;
         }
-
         #fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; background-size: cover; background-position: center;
