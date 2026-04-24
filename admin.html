@@ -117,15 +117,14 @@ let allLogs = [];
     const charCount = document.getElementById('charCount');
     const postBtn = document.getElementById('postBtn');
 
-    // ログイン処理
-    document.getElementById('login-btn').onclick = () => {
-        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("ログイン失敗"));
-    };
-
 onAuthStateChanged(auth, (user) => {
-    // ログインしてたらパネルを表示、してなきゃ非表示
-    document.getElementById('admin-panel').style.display = user ? 'block' : 'none';
-    document.getElementById('login-btn').style.display = user ? 'none' : 'block';
+    // HTMLのID名（admin-section / login-section）に合わせる
+    document.getElementById('admin-section').style.display = user ? 'block' : 'none';
+    document.getElementById('login-section').style.display = user ? 'none' : 'block';
+    
+    if (user) {
+        loadLogs(); // ログインに成功したらログを読み込む
+    }
 });
 
 // ボタンを押したらポップアップを出すだけ
