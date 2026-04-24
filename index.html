@@ -423,20 +423,22 @@ function renderLogs() {
             `).join('');
             };
 
-        window.resetToAll = function() {
-            window.toggleArchive();
-            currentFilter = 'ALL';
-            document.getElementById('mode-display').innerText = `MODE: ALL`;
-            renderLogs();
-        };
+window.toggleNextMode = function() {
+    let idx = modes.indexOf(currentFilter);
+    idx = (idx + 1) % modes.length;
+    currentFilter = modes[idx];
+    // 直接 currentFilter を表示するだけにする
+    document.getElementById('mode-display').innerText = currentFilter; 
+    renderLogs();
+};
 
-        window.toggleNextMode = function() {
-            let idx = modes.indexOf(currentFilter);
-            idx = (idx + 1) % modes.length;
-            currentFilter = modes[idx];
-            document.getElementById('mode-display').innerText = `MODE: ${currentFilter}`;
-            renderLogs();
-        };
+window.resetToAll = function() {
+    window.toggleArchive();
+    currentFilter = 'ALL';
+    // ここも直接 ALL にする
+    document.getElementById('mode-display').innerText = 'ALL'; 
+    renderLogs();
+};
 
         window.toggleFavMode = function() {
             isFavOnly = !isFavOnly;
