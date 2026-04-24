@@ -36,22 +36,18 @@
         }
 
 body {
-            margin: 0; 
-            padding: 0; 
-            background-color: #000; /* 背景を黒に固定して突き抜けを目立たなくする */
-            color: var(--text-main);
-            font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
-            
-            /* ここを修正 */
-            height: 100dvh; 
-            width: 100vw;
-            overflow: hidden; /* 画面全体の余計なスクロールを禁止する */
-            
-            /* iPhoneのノッチや下部バーの余白を自動計算 */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            box-sizing: border-box;
-        }
+    margin: 0; 
+    padding: 0; 
+    background-color: #000;
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', 'Zen Kaku Gothic New', sans-serif;
+
+    /* 🛑 ここを以下のように書き換えます */
+    min-height: 100dvh; 
+    width: 100vw;
+    overflow-x: hidden;
+    overflow-y: auto; 
+}
         #fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; background-size: cover; background-position: center;
@@ -61,12 +57,15 @@ body {
 
 /* 44行目あたりの .container をこれに差し替え */
 .container { 
-    /* padding-top を 20px から 40px くらいに増やして、文字を下げます */
+    /* 余白を広げて文字を下げる */
     padding: calc(env(safe-area-inset-top) + 40px) 20px 140px; 
     max-width: 500px; 
     margin: 0 auto; 
-    height: 100dvh; 
-    overflow-y: auto; 
+    
+    /* 🛑 ここを以下のように変更してください */
+    height: auto; 
+    overflow-y: visible; 
+    
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
 }
