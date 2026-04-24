@@ -122,16 +122,33 @@ let allLogs = [];
         signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("ログイン失敗"));
     };
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const snapshot = await get(ref(db, `whitelist/${user.uid}`));
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // 1. まず、自分（管理者）の新しいUIDをここに書く
+        const ADMIN_UID = "NVCYxoIN2CTxdjrr0Y5c79kURGF3";
+
+        if (user.uid === ADMIN_UID) {
+            // 管理者本人ならパネルを表示
+            document.getElementById('admin-panel').style.display = "block";
+            document.getElementById('login-section').style.display = "none";
+        } else {
+            // 管理者以外のUIDだった場合、whitelistに登録されているか一応チェック
+            const whitelistRef = ref(db, 'whitelist/' + user.uid);
+            const snapshot = await get(whitelistRef);
+            
             if (snapshot.exists() && snapshot.val() === true) {
-                loginSection.style.display = 'none';
-                adminSection.style.display = 'block';
-                loadLogs();
+                alert("閲覧権限はありますが、管理権限がありません。");
+            } else {
+                alert("アクセス権限がありません。");
             }
+            auth.signOut(); // 権限がないのでサインアウトさせる
         }
-    });
+    } else {
+        // ログインしていない時
+        document.getElementById('admin-panel').style.display = "none";
+        document.getElementById('login-section').style.display = "block";
+    }
+});
 
     // --- 不具合修正：リアルタイムカウンター & 制限 ---
     logText.addEventListener('input', () => {
