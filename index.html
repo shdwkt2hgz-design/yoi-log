@@ -172,16 +172,17 @@ body {
         }
         @keyframes scanning-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
         
-        #status-bar-tap-area {
+#status-bar-tap-area {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
-    /* ノッチ（内カメラ）付近の高さ分だけ判定を作る */
+    /* 横幅を画面中央の60%くらいに絞る（両端のボタンを避ける） */
+    left: 20%;
+    width: 60%;
+    /* 高さはノッチ付近だけに限定 */
     height: env(safe-area-inset-top); 
-    min-height: 30px; /* PCなどノッチがない環境でも少し判定を残す */
-    z-index: 9999;    /* どんな要素よりも一番手前に */
-    background: transparent; /* 透明なので見た目は邪魔しない */
+    min-height: 44px; /* 指で触れやすい最小サイズ */
+    z-index: 9999;
+    background: transparent;
     cursor: pointer;
 }
     </style>
