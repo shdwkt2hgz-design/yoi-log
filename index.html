@@ -61,12 +61,13 @@ body {
 
 /* 44行目あたりの .container をこれに差し替え */
 .container { 
-    padding: env(safe-area-inset-top) 20px 140px; /* ノッチ分を自動計算 */
+    /* padding-top を 20px から 40px くらいに増やして、文字を下げます */
+    padding: calc(env(safe-area-inset-top) + 40px) 20px 140px; 
     max-width: 500px; 
     margin: 0 auto; 
-    height: 100dvh;         /* 画面ぴったりに固定 */
-    overflow-y: auto;       /* 中身だけスクロール可能に */
-    -webkit-overflow-scrolling: touch; /* iPhone用スクロール補正 */
+    height: 100dvh; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
 }
 
@@ -175,15 +176,14 @@ body {
 #status-bar-tap-area {
     position: fixed;
     top: 0;
-    /* 横幅を画面中央の60%くらいに絞る（両端のボタンを避ける） */
-    left: 20%;
-    width: 60%;
-    /* 高さはノッチ付近だけに限定 */
-    height: env(safe-area-inset-top); 
-    min-height: 44px; /* 指で触れやすい最小サイズ */
+    left: 0;
+    width: 100%;
+    /* ノッチの高さ分だけを厳密に判定エリアにする */
+    height: env(safe-area-inset-top);
+    /* ノッチがない機種でも最低20pxは確保 */
+    min-height: 20px; 
     z-index: 9999;
     background: transparent;
-    cursor: pointer;
 }
     </style>
 </head>
