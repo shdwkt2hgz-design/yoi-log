@@ -171,6 +171,19 @@ body {
             animation: scanning-bar 1.5s infinite;
         }
         @keyframes scanning-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        
+        #status-bar-tap-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* ノッチ（内カメラ）付近の高さ分だけ判定を作る */
+    height: env(safe-area-inset-top); 
+    min-height: 30px; /* PCなどノッチがない環境でも少し判定を残す */
+    z-index: 9999;    /* どんな要素よりも一番手前に */
+    background: transparent; /* 透明なので見た目は邪魔しない */
+    cursor: pointer;
+}
     </style>
 </head>
 <body> 
@@ -179,9 +192,10 @@ body {
         <div style="font-family: 'Share Tech Mono'; color: var(--accent-cyan); letter-spacing: 5px; font-size: 12px;">SYSTEM INITIALIZING...</div>
     </div>
     <div id="fixed-bg"></div>
+    <div id="status-bar-tap-area" onclick="scrollToTop()"></div>
 
     <div class="container">
-<div class="header-title" id="back-to-top" style="cursor:pointer;">Ryusei Yoi / Personal Log Viewer (HUD)</div>
+<div class="header-title">Ryusei Yoi / Personal Log Viewer (HUD)</div>
         
         <div id="user-info-panel" style="display:none; text-align: center; margin-bottom: 20px;">
             <div style="font-size: 10px; opacity: 0.6; letter-spacing: 1px;">CONNECT ID</div>
@@ -407,8 +421,7 @@ function renderLogs() {
                     </div>
                 </div>
             `).join('');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+            };
 
         window.resetToAll = function() {
             window.toggleArchive();
@@ -452,12 +465,13 @@ function renderLogs() {
             localStorage.setItem('yoi_favs', JSON.stringify(favorites));
             if (isFavOnly) renderLogs();
             };
-            
-// タイトルをタップしたら一番上までスクロール
-        document.getElementById('back-to-top').onclick = () => {
-            const container = document.querySelector('.container');
-            container.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+            // 画面最上部（ステータスバー付近）をタップした時の処理
+window.scrollToTop = function() {
+    const container = document.querySelector('.container');
+    if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
     </script>
 </body>
 </html>
