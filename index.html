@@ -59,15 +59,27 @@ body {
             transform: translateZ(0); transition: background-image 1.5s ease;
         }
 
-        .container { 
-    padding: 20px 20px 100px; 
+/* 44行目あたりの .container をこれに差し替え */
+.container { 
+    padding: env(safe-area-inset-top) 20px 140px; /* ノッチ分を自動計算 */
     max-width: 500px; 
     margin: 0 auto; 
-    /* ここから下を追加 */
-    height: 100%;           /* コンテナの高さを親(body)いっぱいに */
-    overflow-y: auto;       /* 縦方向にスクロールできるようにする */
-    -webkit-overflow-scrolling: touch; /* iPhoneでヌルヌル動くようにする */
+    height: 100dvh;         /* 画面ぴったりに固定 */
+    overflow-y: auto;       /* 中身だけスクロール可能に */
+    -webkit-overflow-scrolling: touch; /* iPhone用スクロール補正 */
     box-sizing: border-box;
+}
+
+/* タイトルのスタイルを再定義して引き締める */
+.header-title { 
+    text-align: center; 
+    font-size: 0.8rem; 
+    letter-spacing: 0.3em; 
+    color: var(--accent-cyan) !important; /* 色を強制的に戻す */
+    margin-top: 20px;       /* 上の余白を少し追加 */
+    margin-bottom: 30px;    /* 下の余白を調整 */
+    line-height: 1.2;       /* 行間をギュッと詰める */
+    text-transform: uppercase; 
 }
 
         .log-window {
