@@ -396,7 +396,7 @@
 
         function updateBackground() {
             const hour = new Date().getHours();
-            let bg = (hour >= 6 && hour < 12) ? "morning.jpg" : (hour >= 12 && hour < 17) ? "noon.jpg" : (hour >= 17 && hour < 20) ? "evening.jpg" : "night.jpg";
+            let bg = (hour >= 6 && hour < 12) ? "morning2.jpg" : (hour >= 12 && hour < 17) ? "noon2.jpg" : (hour >= 17 && hour < 20) ? "evening2.jpg" : "night2.jpg";
             const bgElement = document.getElementById('fixed-bg');
             if(bgElement) bgElement.style.backgroundImage = `url('${bg}')`;
         }
