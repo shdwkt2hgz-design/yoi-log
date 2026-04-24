@@ -213,6 +213,7 @@
         const modes = ['ALL', '#思ったこと', '#聴いた曲', '#ゲーム'];
 
         onAuthStateChanged(auth, async (user) => {
+            hideLoading(); // 
             const infoPanel = document.getElementById('user-info-panel');
             const uidDisplay = document.getElementById('uid-display');
             
