@@ -181,7 +181,7 @@ body {
     <div id="fixed-bg"></div>
 
     <div class="container">
-        <div class="header-title">Ryusei Yoi / Personal Log Viewer (HUD)</div>
+<div class="header-title" id="back-to-top" style="cursor:pointer;">Ryusei Yoi / Personal Log Viewer (HUD)</div>
         
         <div id="user-info-panel" style="display:none; text-align: center; margin-bottom: 20px;">
             <div style="font-size: 10px; opacity: 0.6; letter-spacing: 1px;">CONNECT ID</div>
@@ -327,12 +327,21 @@ body {
             });
         }
 
-        function renderLogs() {
+function renderLogs() {
             const container = document.getElementById('log-container');
             const favorites = JSON.parse(localStorage.getItem('yoi_favs') || '[]');
+            
+            // フィルタリング（タグやお気に入り）を適用
             let filtered = allLogs;
             if (isFavOnly) filtered = filtered.filter(log => favorites.includes(log.date));
             if (currentFilter !== 'ALL') filtered = filtered.filter(log => log.tags && log.tags.includes(currentFilter));
+
+            // ★ここを追加！最新から20件だけを切り出す
+            // ただし「お気に入りモード」や「アーカイブ選択時」は全件見たいと思うので
+            // 通常時（ALLモード）のときだけ制限をかけるのがおすすめです
+            if (!isFavOnly && currentFilter === 'ALL') {
+                filtered = filtered.slice(0, 20);
+            }
 
             container.innerHTML = filtered.map(log => `
                 <div class="log-window">
@@ -442,6 +451,12 @@ body {
             }
             localStorage.setItem('yoi_favs', JSON.stringify(favorites));
             if (isFavOnly) renderLogs();
+            };
+            
+// タイトルをタップしたら一番上までスクロール
+        document.getElementById('back-to-top').onclick = () => {
+            const container = document.querySelector('.container');
+            container.scrollTo({ top: 0, behavior: 'smooth' });
         };
     </script>
 </body>
