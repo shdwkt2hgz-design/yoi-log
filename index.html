@@ -101,34 +101,6 @@ body {
         .hashtags { font-size: 11px; color: var(--accent-cyan); opacity: 0.7; }
         .timestamp-top { font-family: 'Share Tech Mono', monospace; font-size: 10px; opacity: 0.5; }
 
-        /* HUD & アーカイブパネル */
-        .hud-system { position: fixed; bottom: 40px; right: 20px; z-index: 2000; text-align: right; }
-        .fav-toggle-btn {
-            display: inline-block; width: 40px; height: 40px; margin-bottom: 10px;
-            border-radius: 4px; background: rgba(2, 6, 23, 0.9); border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan); font-size: 20px; cursor: pointer;
-            backdrop-filter: blur(4px); transition: all 0.4s; box-shadow: 0 0 10px var(--accent-glow);
-            line-height: 40px; padding: 0;
-        }
-        .fav-toggle-btn.active { border-color: var(--accent-gold); color: var(--accent-gold); box-shadow: 0 0 15px var(--gold-glow); transform: scale(1.1); }
-        
-        .mode-btn {
-            width: 60px; height: 60px; border-radius: 50%;
-            background: rgba(2, 6, 23, 0.9); border: 2px solid var(--accent-cyan);
-            color: var(--accent-cyan); cursor: pointer; position: relative;
-            box-shadow: 0 0 20px var(--accent-glow); backdrop-filter: blur(8px);
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .current-mode-display { 
-            position: absolute; top: 68px; left: 50%; transform: translateX(-50%); 
-            font-family: 'Share Tech Mono', monospace; font-size: 10px; 
-            color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-glow); 
-            white-space: nowrap; background: rgba(2, 6, 23, 0.85);
-            border: 1px solid var(--accent-cyan); padding: 2px 10px; border-radius: 2px;
-            box-shadow: 0 0 10px var(--accent-glow); backdrop-filter: blur(4px);
-        }
-
         /* アーカイブパネル */
         #archive-panel {
             position: fixed; top: 0; right: -320px; width: 280px; height: 100%; 
@@ -184,6 +156,58 @@ body {
     z-index: 9999;
     background: transparent;
 }
+        .bottom-tab-bar {
+    position: fixed;
+    bottom: 25px; /* 下から少し浮かせる */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 450px;
+    height: 70px;
+    
+    /* Safari風の背景：少し透かしてぼかす */
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px); /* Safari用 */
+    
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 35px; /* 丸みのあるカプセル形状 */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 10000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tab-item {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    flex: 1;
+}
+
+.tab-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+.tab-item.active { color: var(--accent-gold); }
+
+.tab-label {
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace; /* ここをいつものフォントに */
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+/* ログの最後がバーに被らないように余白を追加 */
+#log-container {
+    padding-bottom: 110px; 
+}
+
     </style>
 </head>
 <body> 
@@ -213,14 +237,22 @@ body {
         <div id="log-container" style="display:none;"></div>
     </div>
 
-    <div class="hud-system" id="hud-ui" style="display:none;">
-        <div><button class="fav-toggle-btn" id="calendar-btn" onclick="toggleArchive()">📅</button></div>
-        <div><button class="fav-toggle-btn" id="fav-filter-btn" onclick="toggleFavMode()">★</button></div>
-        <button class="mode-btn" onclick="toggleNextMode()">
-            <div style="font-size: 24px;">🛰️</div>
-            <div class="current-mode-display" id="mode-display">ALL</div>
-        </button>
-    </div>
+<nav class="bottom-tab-bar" id="hud-ui" style="display:none;">
+    <button id="calendarBtn" class="tab-item" onclick="toggleArchive()">
+        <span class="tab-icon">📅</span>
+        <span class="tab-label">Calendar</span>
+    </button>
+    
+    <button id="hudBtn" class="tab-item" onclick="toggleNextMode()">
+        <span class="tab-icon">📡</span>
+        <span class="tab-label" id="mode-display">ALL</span>
+    </button>
+    
+    <button id="favBtn" class="tab-item" onclick="toggleFavMode()">
+        <span class="tab-icon">⭐</span>
+        <span class="tab-label">Favorite</span>
+    </button>
+</nav>
 
    <div id="archive-panel" class="log-window">
         <div style="color:var(--accent-cyan); font-size:12px; margin-bottom:20px; border-bottom:1px solid var(--accent-cyan); font-family:'Share Tech Mono';">DATA ARCHIVE</div>
@@ -440,11 +472,12 @@ window.resetToAll = function() {
     renderLogs();
 };
 
-        window.toggleFavMode = function() {
-            isFavOnly = !isFavOnly;
-            document.getElementById('fav-filter-btn').classList.toggle('active');
-            renderLogs();
-        };
+window.toggleFavMode = function() {
+    isFavOnly = !isFavOnly;
+    // ID名を今のボタンに合わせて修正
+    document.getElementById('favBtn').classList.toggle('active');
+    renderLogs();
+};
 
         function updateBackground() {
             const hour = new Date().getHours();
