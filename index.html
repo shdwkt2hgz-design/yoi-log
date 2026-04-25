@@ -156,29 +156,34 @@ body {
     z-index: 9999;
     background: transparent;
 }
-        .bottom-tab-bar {
+.bottom-tab-bar {
     position: fixed;
-    bottom: 25px; /* 下から少し浮かせる */
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 450px;
     height: 70px;
     
-    /* Safari風の背景：少し透かしてぼかす */
     background: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px); /* Safari用 */
+    -webkit-backdrop-filter: blur(15px);
     
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 35px; /* 丸みのあるカプセル形状 */
-    display: flex;
+    border-radius: 35px;
+    
+    /* ここが横並びの心臓部 */
+    display: flex !important;   /* 強制的にフレックスボックスにする */
+    flex-direction: row;        /* 明示的に「横」を指定 */
     justify-content: space-around;
     align-items: center;
-    padding: 0 15px;
+    
+    padding: 0 10px;
     z-index: 10000;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;     /* サイズ計算を正確に */
 }
+
 
 .tab-item {
     background: none;
