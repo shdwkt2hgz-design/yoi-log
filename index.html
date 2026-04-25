@@ -186,22 +186,29 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* 中央に寄せる */
     cursor: pointer;
-    flex: 1;
+    flex: 1;                 /* これが重要！横幅を均等に分け合います */
+    color: var(--text-main);  /* デフォルトの色 */
+    padding: 0;
+    margin: 0;
+    min-width: 0;            /* はみ出し防止 */
 }
 
+/* アイコンと文字のバランス調整 */
 .tab-icon {
     font-size: 20px;
-    margin-bottom: 4px;
+    line-height: 1;
+    margin-bottom: 2px;
 }
-.tab-item.active { color: var(--accent-gold); }
 
 .tab-label {
-    font-size: 10px;
-    font-family: 'Share Tech Mono', monospace; /* ここをいつものフォントに */
+    font-size: 9px;
+    font-family: 'Share Tech Mono', monospace;
     opacity: 0.7;
     white-space: nowrap;
 }
+
 
 /* ログの最後がバーに被らないように余白を追加 */
 #log-container {
