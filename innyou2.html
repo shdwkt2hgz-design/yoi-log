@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配信リモコン</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; background: #222; color: white; }
+        input { width: 90%; padding: 15px; font-size: 18px; border-radius: 8px; border: none; margin-bottom: 20px; }
+        button { width: 90%; padding: 15px; font-size: 18px; font-weight: bold; background: #00ffcc; color: #222; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>配信リモコン</h2>
+    <input type="text" id="url-input" placeholder="例: 日本庭園 (またはURL)">
+    <button onclick="sendToObs()">OBSに送信</button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://innyou-1ec17-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function sendToObs() {
+            const val = document.getElementById('url-input').value;
+            if (val) {
+                db.ref('currentURL').set(val); // 掲示板に書き込むだけ！
+                document.getElementById('url-input').value = ""; // 入力欄を空にする
+            }
+        }
+    </script>
+</body>
+</html>
