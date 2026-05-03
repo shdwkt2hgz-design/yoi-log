@@ -79,25 +79,25 @@
         const db = firebase.database();
 
         // ページを切り替えるメイン関数
-        function displayTarget(targetInput) {
-            const iframe = document.getElementById('web-site');
-            const label = document.getElementById('source-label');
-            let finalUrl = targetInput;
+function displayTarget(targetInput) {
+    const iframe = document.getElementById('web-site');
+    const label = document.getElementById('source-label');
+    let finalUrl = targetInput;
 
-            // URL(http...)で始まっていない場合はWikipedia検索とみなす
-            if (!targetInput.startsWith('http')) {
-                finalUrl = `https://ja.wikipedia.org/wiki/${encodeURIComponent(targetInput)}`;
-            }
+    // URL(http...)で始まっていない場合は「Google検索」にする！
+    if (!targetInput.startsWith('http')) {
+        // Googleの検索結果URLの形式に変換
+        finalUrl = `https://www.google.com/search?q=${encodeURIComponent(targetInput)}&igu=1`;
+    }
 
-            try {
-                iframe.src = finalUrl;
-                // ラベル更新（URLからホスト名を抽出）
-                const urlObj = new URL(finalUrl);
-                label.innerText = `引用元: ${urlObj.hostname}`;
-            } catch (e) {
-                label.innerText = "表示エラー";
-            }
-        }
+    try {
+        iframe.src = finalUrl;
+        const urlObj = new URL(finalUrl);
+        label.innerText = `引用元: ${urlObj.hostname}`;
+    } catch (e) {
+        label.innerText = "表示エラー";
+    }
+}
 
         // PC側の入力欄用
         function changePage() {
