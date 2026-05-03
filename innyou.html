@@ -70,7 +70,7 @@ function displayTarget(targetInput) {
     // URL(http...)で始まっていない場合は「Google検索」にする！
     if (!targetInput.startsWith('http')) {
         // Googleの検索結果URLの形式に変換
-        finalUrl = `https://www.google.com/search?q=${encodeURIComponent(targetInput)}&igu=1&hl=ja&gl=jp&lr=lang_ja&uule=w+CAIQICIJapan`;
+        finalUrl = `https://www.google.com/search?q=${encodeURIComponent(targetInput)}&igu=1&hl=ja&gl=jp&lr=lang_ja&uule=w+CAIQICIGlobal`;
     }
 
     try {
