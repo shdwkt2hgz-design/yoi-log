@@ -2,14 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <title>OBS表示システム</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden; /* スクロールバーを隠す */
-            background-color: transparent; /* 背景を透明に */
+            overflow: hidden;
+            background-color: transparent;
         }
 
         /* 埋め込み先のサイト画面 */
@@ -31,82 +32,89 @@
             border: 2px solid #00ffcc;
             border-radius: 4px;
             font-weight: bold;
-            z-index: 999; /* 一番手前に表示 */
+            z-index: 999;
+        }
+
+        /* 管理パネル（OBS上ではクロップして隠すか、不要なら削除OK） */
+        #admin-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
     </style>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-    <iframe id="web-site" src=""></iframe>
-<!-- HTML部分：入力欄とボタン -->
-<div id="admin-panel" style="position:fixed; top:10; left:10; z-index:1000; background:white; padding:10px;">
-    <input type="text" id="url-input" placeholder="URLやワードを入力">
-    <button onclick="changePage()">移動</button>
-</div>
+    <iframe id="web-site" src="https://www.wikipedia.org/"></iframe>
+
+    <div id="admin-panel">
+        <input type="text" id="url-input" placeholder="URLまたは検索ワード">
+        <button onclick="changePage()">移動</button>
+    </div>
 
     <div id="source-label">引用元を表示中</div>
 
     <script>
-function changePage() {
-    const val = document.getElementById('url-input').value;
-    // もしURLっぽくなければGoogle検索に飛ばす、などの処理も可能
-    displayTarget(val); 
-}
-        function displayTarget(targetUrl) {
+        // --- Firebase設定 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8ybi5nzlRFV43prUPS_SvQR3Lcu5GP9I",
+            authDomain: "innyou-1ec17.firebaseapp.com",
+            databaseURL: "https://innyou-1ec17-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "innyou-1ec17",
+            storageBucket: "innyou-1ec17.firebasestorage.app",
+            messagingSenderId: "434159243576",
+            appId: "1:434159243576:web:0a4835114eaa94c2bf71cd",
+            measurementId: "G-NS94XL63CH"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ページを切り替えるメイン関数
+        function displayTarget(targetInput) {
             const iframe = document.getElementById('web-site');
             const label = document.getElementById('source-label');
+            let finalUrl = targetInput;
+
+            // URL(http...)で始まっていない場合はWikipedia検索とみなす
+            if (!targetInput.startsWith('http')) {
+                finalUrl = `https://ja.wikipedia.org/wiki/${encodeURIComponent(targetInput)}`;
+            }
 
             try {
-                // 1. サイトをiframeに読み込む
-                iframe.src = targetUrl;
-
-                // 2. URLからドメインを抽出してテロップにする
-                const url = new URL(targetUrl);
-                label.innerText = `引用元: ${url.hostname}`;
+                iframe.src = finalUrl;
+                // ラベル更新（URLからホスト名を抽出）
+                const urlObj = new URL(finalUrl);
+                label.innerText = `引用元: ${urlObj.hostname}`;
             } catch (e) {
-                label.innerText = "URLが正しくありません";
+                label.innerText = "表示エラー";
             }
         }
-// iframeの中身が切り替わった（ページ移動した）ことを検知する
-document.getElementById('web-site').onload = function() {
-    try {
-        // 移動先のURLを取得してテロップを更新
-        const currentUrl = this.contentWindow.location.href;
-        const url = new URL(currentUrl);
-        document.getElementById('source-label').innerText = `引用元: ${url.hostname}`;
-    } catch (e) {
-        // 外部サイトの場合はセキュリティ制限でURLが読めないことがあるので
-        // その場合は最初に設定したドメインのまま維持されます
-    }
-};
 
-        // 【テスト】帰宅して開いた瞬間、このサイトが表示されます
-        // 実際はここを書き換えたり、スマホから送ったりします
-        displayTarget("https://www.wikipedia.org/"); 
+        // PC側の入力欄用
+        function changePage() {
+            const val = document.getElementById('url-input').value;
+            if (val) displayTarget(val);
+        }
 
-  // Firebaseの設定（コンソールで発行されたものに書き換える）
- const firebaseConfig = {
-    apiKey: "AIzaSyC8ybi5nzlRFV43prUPS_SvQR3Lcu5GP9I",
-    authDomain: "innyou-1ec17.firebaseapp.com",
-    databaseURL: "https://innyou-1ec17-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "innyou-1ec17",
-    storageBucket: "innyou-1ec17.firebasestorage.app",
-    messagingSenderId: "434159243576",
-    appId: "1:434159243576:web:0a4835114eaa94c2bf71cd",
-    measurementId: "G-NS94XL63CH"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+        // Firebaseを見張る（スマホからの命令をキャッチ）
+        db.ref('currentURL').on('value', (snapshot) => {
+            const remoteData = snapshot.val();
+            if (remoteData) {
+                displayTarget(remoteData);
+            }
+        });
 
-  // データベースの 'currentURL' という項目を見張る
-  db.ref('currentURL').on('value', (snapshot) => {
-    const newUrl = snapshot.val();
-    if (newUrl) {
-      displayTarget(newUrl); // さっき作った表示関数を呼び出す
-    }
-  });
+        // 外部サイトはセキュリティ上URL取得が制限されるため、
+        // 基本的には displayTarget 実行時のラベル更新を優先します
     </script>
 </body>
 </html>
