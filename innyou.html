@@ -34,6 +34,8 @@
             z-index: 999; /* 一番手前に表示 */
         }
     </style>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -83,6 +85,28 @@ document.getElementById('web-site').onload = function() {
         // 【テスト】帰宅して開いた瞬間、このサイトが表示されます
         // 実際はここを書き換えたり、スマホから送ったりします
         displayTarget("https://www.wikipedia.org/"); 
+
+  // Firebaseの設定（コンソールで発行されたものに書き換える）
+ const firebaseConfig = {
+    apiKey: "AIzaSyC8ybi5nzlRFV43prUPS_SvQR3Lcu5GP9I",
+    authDomain: "innyou-1ec17.firebaseapp.com",
+    databaseURL: "https://innyou-1ec17-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "innyou-1ec17",
+    storageBucket: "innyou-1ec17.firebasestorage.app",
+    messagingSenderId: "434159243576",
+    appId: "1:434159243576:web:0a4835114eaa94c2bf71cd",
+    measurementId: "G-NS94XL63CH"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // データベースの 'currentURL' という項目を見張る
+  db.ref('currentURL').on('value', (snapshot) => {
+    const newUrl = snapshot.val();
+    if (newUrl) {
+      displayTarget(newUrl); // さっき作った表示関数を呼び出す
+    }
+  });
     </script>
 </body>
 </html>
