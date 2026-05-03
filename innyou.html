@@ -34,18 +34,6 @@
             font-weight: bold;
             z-index: 999;
         }
-
-        /* 管理パネル（OBS上ではクロップして隠すか、不要なら削除OK） */
-        #admin-panel {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
     </style>
 
     <!-- Firebase SDK -->
@@ -55,11 +43,6 @@
 <body>
 
     <iframe id="web-site" src="https://www.wikipedia.org/"></iframe>
-
-    <div id="admin-panel">
-        <input type="text" id="url-input" placeholder="URLまたは検索ワード">
-        <button onclick="changePage()">移動</button>
-    </div>
 
     <div id="source-label">引用元を表示中</div>
 
